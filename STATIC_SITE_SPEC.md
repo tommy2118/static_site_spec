@@ -1,0 +1,1551 @@
+# Static Site Specification
+
+**Version:** 1.1.0
+**Last Updated:** January 2026
+**Author:** Tommy A. Caruso Sr.
+
+---
+
+## 1. PURPOSE
+
+### What This Spec Is
+
+This document defines the canonical architecture, conventions, and implementation details for building static websites. It is prescriptive, not advisory. When building a static site under this specification, follow these patterns exactly.
+
+### Who It's For
+
+- **Primary:** Claude Code and AI assistants executing site builds
+- **Secondary:** Human developers who need to understand or maintain sites built to this spec
+- **Tertiary:** Collaborators who may receive sites built to this spec
+
+### What "Done" Looks Like
+
+A site is complete when:
+
+1. All files conform to the directory structure defined in Section 3
+2. `npm run dev` starts the development server without errors
+3. `npm run build` produces a production build in `dist/`
+4. All templates render without Nunjucks errors
+5. Tailwind CSS compiles and applies styles correctly
+6. Stimulus controllers initialize and respond to user interaction
+7. The site deploys successfully to GitHub Pages
+8. README.md documents all setup and customization steps
+9. CLAUDE.md provides AI pairing context
+
+---
+
+## 2. STACK DECISIONS
+
+### Core Technologies
+
+| Technology | Version | Purpose | Installation |
+|------------|---------|---------|--------------|
+| Node.js | 20+ | Runtime | System install |
+| Eleventy | 3.1.x | Static site generator | `@11ty/eleventy` |
+| Tailwind CSS | 4.1.x | Utility-first CSS | `tailwindcss` |
+| PostCSS | 8.x | CSS processing | `postcss` |
+| @tailwindcss/postcss | 4.x | Tailwind PostCSS plugin | `@tailwindcss/postcss` |
+| cssnano | 7.x | CSS minification | `cssnano` |
+| Stimulus | 3.2.x | JavaScript behavior | `@hotwired/stimulus` |
+| Nunjucks | (bundled) | Templating | Included with Eleventy |
+
+### Module System
+
+All JavaScript uses **ESM (ES Modules)**. No CommonJS.
+
+```json
+{
+  "type": "module"
+}
+```
+
+### What We Are NOT Using
+
+| Technology | Reason |
+|------------|--------|
+| Vite | Unnecessary complexity for static sites; Eleventy handles builds |
+| React/Vue/Svelte | Violates the "HTML-first" philosophy; Stimulus provides sufficient interactivity |
+| SCSS/Sass | Tailwind 4's @theme directive replaces the need for preprocessors |
+| npm-run-all/concurrently | Single-process build via eleventy.before hook eliminates need |
+| tailwind.config.js | Tailwind 4 uses CSS-first configuration via @theme |
+| PostCSS config file | Configuration lives in eleventy.config.js |
+| Alpine.js | Stimulus is the standard; one JS framework only |
+| TypeScript | Unnecessary complexity for static site JS; vanilla ES6+ suffices |
+
+---
+
+## 3. DIRECTORY STRUCTURE
+
+```
+project/
+├── src/                          # All source files
+│   ├── _data/                    # Global data files
+│   │   ├── site.json             # Site metadata
+│   │   └── navigation.json       # Navigation structure
+│   │
+│   ├── _includes/                # Reusable templates
+│   │   ├── layouts/              # Page layouts
+│   │   │   ├── base.njk          # Root layout (HTML shell)
+│   │   │   ├── page.njk          # Standard page layout
+│   │   │   ├── post.njk          # Blog post layout (if using blog)
+│   │   │   └── project.njk       # Portfolio project layout (if using portfolio)
+│   │   │
+│   │   └── partials/             # Includable components
+│   │       ├── head.njk          # <head> contents
+│   │       ├── nav.njk           # Navigation
+│   │       ├── footer.njk        # Footer
+│   │       └── scripts.njk       # JS includes (before </body>)
+│   │
+│   ├── assets/                   # Static assets
+│   │   ├── css/
+│   │   │   └── main.css          # Tailwind entry point
+│   │   │
+│   │   ├── js/
+│   │   │   ├── application.js    # Stimulus application setup
+│   │   │   └── controllers/      # Stimulus controllers
+│   │   │       └── .gitkeep      # Placeholder until controllers added
+│   │   │
+│   │   ├── images/               # Image assets
+│   │   │   └── .gitkeep
+│   │   │
+│   │   └── fonts/                # Web fonts (if any)
+│   │       └── .gitkeep
+│   │
+│   ├── content/                  # Blog content (if applicable)
+│   │   └── posts/                # Blog posts
+│   │       └── .gitkeep
+│   │
+│   ├── portfolio/                # Portfolio section (if applicable)
+│   │   ├── index.njk             # Portfolio gallery page
+│   │   └── projects/             # Individual project files
+│   │       └── .gitkeep
+│   │
+│   ├── index.njk                 # Homepage
+│   ├── about.njk                 # About page
+│   └── contact.njk               # Contact page
+│
+├── dist/                         # Build output (gitignored)
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # GitHub Pages deployment
+│
+├── .gitignore
+├── eleventy.config.js            # Eleventy configuration
+├── package.json
+├── package-lock.json
+├── CLAUDE.md                     # AI pairing context
+└── README.md                     # Human documentation
+```
+
+### Naming Conventions
+
+| Item | Convention | Example |
+|------|------------|---------|
+| Directories | lowercase, hyphens | `_includes`, `my-section` |
+| Layouts | lowercase, `.njk` | `base.njk`, `page.njk` |
+| Partials | lowercase, `.njk` | `nav.njk`, `footer.njk` |
+| Data files | lowercase, `.json` | `site.json`, `navigation.json` |
+| CSS files | lowercase, `.css` | `main.css` |
+| JS files | lowercase, underscores for controllers | `application.js`, `toggle_controller.js` |
+| Stimulus controllers | `[name]_controller.js` | `mobile_nav_controller.js` |
+| Content files | lowercase, hyphens, `.md` or `.njk` | `about-us.md`, `contact.njk` |
+| Images | lowercase, hyphens | `hero-background.jpg` |
+
+### What Goes Where
+
+| Content Type | Location |
+|--------------|----------|
+| HTML structure, meta tags | `src/_includes/partials/head.njk` |
+| Navigation markup | `src/_includes/partials/nav.njk` |
+| Footer markup | `src/_includes/partials/footer.njk` |
+| Script tags | `src/_includes/partials/scripts.njk` |
+| Page chrome (combines partials) | `src/_includes/layouts/base.njk` |
+| Site-wide data (title, description, author) | `src/_data/site.json` |
+| Nav links | `src/_data/navigation.json` |
+| Tailwind config + custom styles | `src/assets/css/main.css` |
+| Stimulus setup | `src/assets/js/application.js` |
+| Interactive behaviors | `src/assets/js/controllers/*.js` |
+| Standalone pages | `src/*.njk` (index, about, contact) |
+| Section landing pages | `src/[section]/index.njk` |
+| Blog posts / articles | `src/content/posts/*.md` |
+| Portfolio projects | `src/portfolio/projects/*.md` |
+| Static images | `src/assets/images/` |
+
+---
+
+## 4. FILE SPECIFICATIONS
+
+### 4.1 package.json
+
+```json
+{
+  "name": "project-name",
+  "version": "1.0.0",
+  "description": "Project description",
+  "type": "module",
+  "scripts": {
+    "dev": "eleventy --serve --watch",
+    "build": "NODE_ENV=production eleventy",
+    "clean": "rm -rf dist"
+  },
+  "author": "Author Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.0",
+    "@hotwired/stimulus": "^3.2.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "cssnano": "^7.0.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.0"
+  }
+}
+```
+
+**Notes:**
+- `type: "module"` is required for ESM
+- Only three scripts: `dev`, `build`, `clean`
+- All style/JS processing happens through Eleventy hooks
+- No `start` script (use `dev`)
+- No separate CSS watch script
+
+### 4.2 eleventy.config.js
+
+```javascript
+import fs from "fs";
+import path from "path";
+import postcss from "postcss";
+import tailwindcss from "@tailwindcss/postcss";
+import cssnano from "cssnano";
+
+export default function (eleventyConfig) {
+  // ---------------------------------------------------------------------------
+  // PASSTHROUGH COPIES
+  // ---------------------------------------------------------------------------
+
+  // JavaScript (including Stimulus controllers)
+  eleventyConfig.addPassthroughCopy({ "src/assets/js": "assets/js" });
+
+  // Images
+  eleventyConfig.addPassthroughCopy({ "src/assets/images": "assets/images" });
+
+  // Fonts
+  eleventyConfig.addPassthroughCopy({ "src/assets/fonts": "assets/fonts" });
+
+  // ---------------------------------------------------------------------------
+  // CSS PROCESSING (Tailwind 4 via PostCSS)
+  // ---------------------------------------------------------------------------
+
+  const cssProcessor = postcss([
+    tailwindcss(),
+    ...(process.env.NODE_ENV === "production" ? [cssnano({ preset: "default" })] : []),
+  ]);
+
+  eleventyConfig.on("eleventy.before", async () => {
+    const inputPath = path.resolve("./src/assets/css/main.css");
+    const outputPath = "./dist/assets/css/main.css";
+    const outputDir = path.dirname(outputPath);
+
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const cssContent = fs.readFileSync(inputPath, "utf8");
+    const result = await cssProcessor.process(cssContent, {
+      from: inputPath,
+      to: outputPath,
+    });
+
+    fs.writeFileSync(outputPath, result.css);
+
+    if (result.map) {
+      fs.writeFileSync(`${outputPath}.map`, result.map.toString());
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // WATCH TARGETS
+  // ---------------------------------------------------------------------------
+
+  // Rebuild CSS when Tailwind input changes
+  eleventyConfig.addWatchTarget("./src/assets/css/");
+
+  // Rebuild when JS changes
+  eleventyConfig.addWatchTarget("./src/assets/js/");
+
+  // ---------------------------------------------------------------------------
+  // FILTERS
+  // ---------------------------------------------------------------------------
+
+  // Format dates for display
+  eleventyConfig.addFilter("readableDate", (dateObj) => {
+    return new Date(dateObj).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  });
+
+  // ISO date for datetime attributes
+  eleventyConfig.addFilter("isoDate", (dateObj) => {
+    return new Date(dateObj).toISOString();
+  });
+
+  // Limit array to first N items (useful for "recent" sections)
+  eleventyConfig.addFilter("head", (array, n) => {
+    if (!Array.isArray(array)) return array;
+    return array.slice(0, n);
+  });
+
+  // ---------------------------------------------------------------------------
+  // SHORTCODES
+  // ---------------------------------------------------------------------------
+
+  // Current year (for copyright)
+  eleventyConfig.addShortcode("year", () => `${new Date().getFullYear()}`);
+
+  // ---------------------------------------------------------------------------
+  // COLLECTIONS
+  // ---------------------------------------------------------------------------
+
+  // Blog posts collection (uncomment if using content/posts)
+  // eleventyConfig.addCollection("posts", function (collectionApi) {
+  //   return collectionApi
+  //     .getFilteredByGlob("src/content/posts/**/*.md")
+  //     .filter((item) => !item.data.draft)
+  //     .sort((a, b) => b.date - a.date);
+  // });
+
+  // Portfolio projects collection (uncomment if using portfolio/projects)
+  // eleventyConfig.addCollection("projects", function (collectionApi) {
+  //   return collectionApi
+  //     .getFilteredByGlob("src/portfolio/projects/**/*.md")
+  //     .filter((item) => !item.data.draft)
+  //     .sort((a, b) => b.date - a.date);
+  // });
+
+  // ---------------------------------------------------------------------------
+  // CONFIGURATION
+  // ---------------------------------------------------------------------------
+
+  return {
+    dir: {
+      input: "src",
+      output: "dist",
+      includes: "_includes",
+      data: "_data",
+    },
+    templateFormats: ["njk", "md", "html"],
+    markdownTemplateEngine: "njk",
+    htmlTemplateEngine: "njk",
+    // For GitHub Pages project sites (username.github.io/repo-name):
+    // pathPrefix: process.env.GITHUB_ACTIONS ? "/repo-name/" : "/",
+  };
+}
+```
+
+### 4.3 src/assets/css/main.css
+
+```css
+/* =============================================================================
+   TAILWIND CSS 4.x ENTRY POINT
+   ============================================================================= */
+
+@import "tailwindcss";
+
+/* =============================================================================
+   SOURCE PATHS
+
+   Tell Tailwind where to scan for class usage. Required in Tailwind 4.
+   Without this, Tailwind won't detect classes in your templates.
+   ============================================================================= */
+
+@source "../../../src/**/*.njk";
+@source "../../../src/**/*.md";
+@source "../../../src/**/*.html";
+
+/* =============================================================================
+   THEME CONFIGURATION
+
+   Tailwind 4 uses CSS-first configuration. All customizations live here.
+   Reference: https://tailwindcss.com/docs/theme
+   ============================================================================= */
+
+@theme {
+  /* ---------------------------------------------------------------------------
+     COLORS
+
+     Define project colors. Use semantic names.
+     Format: --color-[name]-[shade]: [value];
+     --------------------------------------------------------------------------- */
+
+  /* Example: Custom brand colors */
+  /* --color-brand-50: oklch(0.97 0.01 250); */
+  /* --color-brand-500: oklch(0.55 0.15 250); */
+  /* --color-brand-900: oklch(0.25 0.08 250); */
+
+  /* ---------------------------------------------------------------------------
+     FONTS
+
+     Format: --font-[name]: [stack];
+     --------------------------------------------------------------------------- */
+
+  /* Example: Custom font stack */
+  /* --font-display: "Inter", system-ui, sans-serif; */
+
+  /* ---------------------------------------------------------------------------
+     SPACING
+
+     Extend or override spacing scale.
+     Format: --spacing-[key]: [value];
+     --------------------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------------------
+     BREAKPOINTS
+
+     Format: --breakpoint-[name]: [value];
+     --------------------------------------------------------------------------- */
+
+  /* Defaults are fine for most projects:
+     --breakpoint-sm: 40rem;   (640px)
+     --breakpoint-md: 48rem;   (768px)
+     --breakpoint-lg: 64rem;   (1024px)
+     --breakpoint-xl: 80rem;   (1280px)
+     --breakpoint-2xl: 96rem;  (1536px)
+  */
+
+  /* ---------------------------------------------------------------------------
+     ANIMATIONS
+
+     Format: --animate-[name]: [keyframe-name] [duration] [timing] [iteration];
+     --------------------------------------------------------------------------- */
+}
+
+/* =============================================================================
+   BASE STYLES
+
+   Global element defaults. Use sparingly.
+   ============================================================================= */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Improve focus visibility */
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* =============================================================================
+   COMPONENTS
+
+   Reusable component classes. Prefer utilities; use components sparingly.
+   ============================================================================= */
+
+@layer components {
+  /* Button component example */
+  /* .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium rounded-lg transition-colors;
+  } */
+
+  /* Prose component for content styling */
+  /* .prose-custom {
+    @apply max-w-none;
+
+    h2 { @apply text-2xl font-bold mt-8 mb-4; }
+    h3 { @apply text-xl font-semibold mt-6 mb-3; }
+    p { @apply mb-4 leading-relaxed; }
+    a { @apply underline hover:no-underline; }
+    ul, ol { @apply mb-4 pl-6; }
+    li { @apply mb-2; }
+    blockquote { @apply border-l-4 pl-4 italic my-4; }
+  } */
+
+  /* Card component for galleries/grids */
+  /* .project-card {
+    @apply block group;
+  }
+  .project-card-image {
+    @apply overflow-hidden rounded-lg aspect-4/3;
+
+    img { @apply w-full h-full object-cover transition-transform duration-300 group-hover:scale-105; }
+  }
+  .project-card-title {
+    @apply mt-3 font-medium transition-colors group-hover:text-accent;
+  }
+  .project-card-meta {
+    @apply text-sm text-gray-500;
+  } */
+}
+
+/* =============================================================================
+   UTILITIES
+
+   Custom utility classes. Should be single-purpose.
+   ============================================================================= */
+
+@layer utilities {
+  /* Example utility:
+  .text-balance {
+    text-wrap: balance;
+  }
+  */
+}
+```
+
+### 4.4 src/assets/js/application.js
+
+```javascript
+// =============================================================================
+// STIMULUS APPLICATION
+// =============================================================================
+
+import { Application } from "@hotwired/stimulus";
+
+// Start Stimulus application
+const application = Application.start();
+
+// Configure Stimulus development experience
+application.debug = false;
+window.Stimulus = application;
+
+// =============================================================================
+// CONTROLLER REGISTRATION
+//
+// Import and register controllers manually. This approach:
+// - Works without a build step
+// - Is explicit about what's loaded
+// - Supports CDN-based Stimulus via importmap
+// =============================================================================
+
+// Example registration (uncomment when adding controllers):
+// import ToggleController from "./controllers/toggle_controller.js";
+// application.register("toggle", ToggleController);
+
+// import MobileNavController from "./controllers/mobile_nav_controller.js";
+// application.register("mobile-nav", MobileNavController);
+
+export { application };
+```
+
+### 4.5 Example Stimulus Controller
+
+`src/assets/js/controllers/toggle_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Toggle Controller
+ *
+ * A general-purpose controller for showing/hiding elements.
+ *
+ * Usage:
+ *   <div data-controller="toggle">
+ *     <button data-action="click->toggle#toggle" aria-expanded="false">
+ *       Toggle Menu
+ *     </button>
+ *     <div data-toggle-target="content" class="hidden">
+ *       Content to show/hide
+ *     </div>
+ *   </div>
+ *
+ * With custom hidden class:
+ *   <div data-controller="toggle" data-toggle-hidden-class="invisible opacity-0">
+ */
+export default class extends Controller {
+  static targets = ["content"];
+  static values = {
+    open: { type: Boolean, default: false },
+  };
+  static classes = ["hidden"];
+
+  connect() {
+    // Apply initial state
+    this.sync();
+  }
+
+  toggle() {
+    this.openValue = !this.openValue;
+  }
+
+  open() {
+    this.openValue = true;
+  }
+
+  close() {
+    this.openValue = false;
+  }
+
+  openValueChanged() {
+    this.sync();
+  }
+
+  sync() {
+    const hiddenClass = this.hasHiddenClass ? this.hiddenClass : "hidden";
+
+    this.contentTargets.forEach((target) => {
+      target.classList.toggle(hiddenClass, !this.openValue);
+    });
+
+    // Update aria-expanded on trigger elements
+    this.element
+      .querySelectorAll("[aria-expanded]")
+      .forEach((el) => el.setAttribute("aria-expanded", this.openValue));
+  }
+}
+```
+
+### 4.6 src/_data/site.json
+
+```json
+{
+  "name": "Site Name",
+  "title": "Tagline or Descriptor",
+  "description": "Site description for meta tags and SEO.",
+  "url": "https://example.com",
+  "author": {
+    "name": "Author Name",
+    "email": "author@example.com"
+  },
+  "language": "en",
+  "theme": {
+    "color": "#ffffff"
+  }
+}
+```
+
+**Notes:**
+- `name`: Brand or personal name (used in header, footer, copyright)
+- `title`: Optional tagline or descriptor (e.g., "Woodworking & Craft")
+- `description`: Used for meta description and social sharing
+- `theme.color`: Browser theme color (address bar, PWA)
+
+### 4.7 src/_data/navigation.json
+
+```json
+{
+  "main": [
+    { "label": "Home", "url": "/" },
+    { "label": "About", "url": "/about/" },
+    { "label": "Contact", "url": "/contact/" }
+  ],
+  "footer": [
+    { "label": "Privacy", "url": "/privacy/" },
+    { "label": "Terms", "url": "/terms/" }
+  ]
+}
+```
+
+### 4.8 src/_includes/layouts/base.njk
+
+```nunjucks
+<!DOCTYPE html>
+<html lang="{{ site.language | default('en') }}">
+  <head>
+    {% include "partials/head.njk" %}
+  </head>
+  <body class="min-h-screen flex flex-col">
+    {% include "partials/nav.njk" %}
+
+    <main class="flex-1">
+      {{ content | safe }}
+    </main>
+
+    {% include "partials/footer.njk" %}
+    {% include "partials/scripts.njk" %}
+  </body>
+</html>
+```
+
+### 4.9 src/_includes/layouts/page.njk
+
+```nunjucks
+---
+layout: layouts/base.njk
+---
+
+<div class="container mx-auto px-4 py-12">
+  {% if title %}
+  <h1 class="text-4xl font-bold mb-8">{{ title }}</h1>
+  {% endif %}
+
+  <div class="prose max-w-none">
+    {{ content | safe }}
+  </div>
+</div>
+```
+
+### 4.10 src/_includes/layouts/project.njk (Portfolio Sites)
+
+```nunjucks
+---
+layout: layouts/base.njk
+---
+
+<article class="container mx-auto px-4 py-12">
+  {# Back link #}
+  <a href="/portfolio/" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Portfolio
+  </a>
+
+  {# Project header #}
+  <header class="mb-8">
+    <h1 class="text-4xl font-bold mb-2">{{ title }}</h1>
+    {% if category %}
+    <p class="text-gray-600">{{ category }}</p>
+    {% endif %}
+    {% if date %}
+    <time datetime="{{ date | isoDate }}" class="text-sm text-gray-500">
+      {{ date | readableDate }}
+    </time>
+    {% endif %}
+  </header>
+
+  {# Featured image #}
+  {% if image %}
+  <figure class="mb-8">
+    <img
+      src="{{ image }}"
+      alt="{{ imageAlt | default(title) }}"
+      class="w-full rounded-lg"
+    >
+  </figure>
+  {% endif %}
+
+  {# Content #}
+  <div class="prose max-w-none">
+    {{ content | safe }}
+  </div>
+</article>
+```
+
+### 4.11 src/_includes/partials/head.njk
+
+```nunjucks
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ title }}{% if title %} | {% endif %}{{ site.name }}</title>
+<meta name="description" content="{{ description | default(site.description) }}">
+
+{# Canonical URL #}
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+
+{# Open Graph #}
+<meta property="og:title" content="{{ title | default(site.name) }}">
+<meta property="og:description" content="{{ description | default(site.description) }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+{% if image %}
+<meta property="og:image" content="{{ site.url }}{{ image }}">
+{% endif %}
+
+{# Twitter Card #}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title | default(site.name) }}">
+<meta name="twitter:description" content="{{ description | default(site.description) }}">
+
+{# Theme Color #}
+<meta name="theme-color" content="{{ site.theme.color | default('#ffffff') }}">
+
+{# Favicon - update paths as needed #}
+<link rel="icon" href="/assets/images/favicon.ico" sizes="any">
+<link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+
+{# Preconnect to external domains if needed #}
+{# <link rel="preconnect" href="https://fonts.googleapis.com"> #}
+
+{# Stylesheet #}
+<link rel="stylesheet" href="/assets/css/main.css">
+```
+
+### 4.12 src/_includes/partials/nav.njk
+
+```nunjucks
+<header class="bg-white border-b border-gray-200">
+  <nav class="container mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      {# Logo / Site Name #}
+      <a href="/" class="text-xl font-bold">
+        {{ site.name }}
+      </a>
+
+      {# Desktop Navigation #}
+      <ul class="hidden md:flex items-center gap-6">
+        {% for item in navigation.main %}
+        <li>
+          <a
+            href="{{ item.url }}"
+            class="text-gray-600 hover:text-gray-900 transition-colors{% if page.url == item.url %} text-gray-900 font-medium{% endif %}"
+          >
+            {{ item.label }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+
+      {# Mobile Menu Button #}
+      <button
+        type="button"
+        class="md:hidden p-2 -mr-2"
+        data-controller="toggle"
+        data-action="click->toggle#toggle"
+        aria-expanded="false"
+        aria-label="Toggle menu"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    {# Mobile Navigation #}
+    <div data-toggle-target="content" class="hidden md:hidden pb-4">
+      <ul class="flex flex-col gap-2">
+        {% for item in navigation.main %}
+        <li>
+          <a
+            href="{{ item.url }}"
+            class="block py-2 text-gray-600 hover:text-gray-900{% if page.url == item.url %} text-gray-900 font-medium{% endif %}"
+          >
+            {{ item.label }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+</header>
+```
+
+### 4.13 src/_includes/partials/footer.njk
+
+```nunjucks
+<footer class="bg-gray-50 border-t border-gray-200">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {# Copyright #}
+      <p class="text-gray-600 text-sm">
+        &copy; {% year %} {{ site.name }}. All rights reserved.
+      </p>
+
+      {# Footer Navigation #}
+      {% if navigation.footer %}
+      <ul class="flex gap-6">
+        {% for item in navigation.footer %}
+        <li>
+          <a href="{{ item.url }}" class="text-gray-600 hover:text-gray-900 text-sm transition-colors">
+            {{ item.label }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+</footer>
+```
+
+### 4.14 src/_includes/partials/scripts.njk
+
+```nunjucks
+{# Stimulus via importmap (no build step required) #}
+<script type="importmap">
+{
+  "imports": {
+    "@hotwired/stimulus": "https://unpkg.com/@hotwired/stimulus@3.2.2/dist/stimulus.js"
+  }
+}
+</script>
+
+<script type="module" src="/assets/js/application.js"></script>
+
+{# Analytics - uncomment and configure as needed #}
+{#
+{% if site.analytics.ga4 %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ site.analytics.ga4 }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ site.analytics.ga4 }}');
+</script>
+{% endif %}
+#}
+```
+
+### 4.15 src/index.njk
+
+```nunjucks
+---
+layout: layouts/base.njk
+title: Home
+description: Welcome to the site.
+---
+
+<section class="container mx-auto px-4 py-16">
+  <h1 class="text-4xl md:text-5xl font-bold mb-6">
+    Welcome to {{ site.name }}
+  </h1>
+  <p class="text-xl text-gray-600 max-w-2xl">
+    {{ site.description }}
+  </p>
+</section>
+```
+
+### 4.16 .gitignore
+
+```
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+```
+
+### 4.17 .github/workflows/deploy.yml
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+---
+
+## 5. CONTENT AUTHORING
+
+### Frontmatter Schema
+
+Every content file must include frontmatter. Required and optional fields:
+
+```yaml
+---
+# REQUIRED
+layout: layouts/page.njk    # Layout to use
+title: Page Title           # Page title (used in <title> and <h1>)
+
+# RECOMMENDED
+description: Description    # Meta description (SEO)
+date: 2026-01-08           # Content date (for sorting)
+
+# OPTIONAL
+draft: false               # Exclude from build if true
+tags:                      # For collections
+  - tag1
+  - tag2
+image: /assets/images/og.jpg  # Open Graph / featured image
+---
+```
+
+#### Portfolio Project Frontmatter
+
+Projects in `src/portfolio/projects/` use additional fields:
+
+```yaml
+---
+layout: layouts/project.njk
+title: Project Name
+description: Brief project description
+date: 2026-01-08
+category: Category Name     # e.g., "Furniture", "Cabinetry"
+image: /assets/images/project-hero.jpg
+imageAlt: Descriptive alt text for the image
+draft: false
+---
+```
+
+### Markdown Conventions
+
+1. **One H1 per page** — The `title` frontmatter becomes the H1. Don't add another.
+2. **Headings in order** — H2, then H3, never skip levels.
+3. **Alt text required** — All images must have descriptive alt text.
+4. **Link text meaningful** — No "click here" links.
+
+### Collections Pattern
+
+Define collections in `eleventy.config.js`:
+
+```javascript
+eleventyConfig.addCollection("posts", function (collectionApi) {
+  return collectionApi
+    .getFilteredByGlob("src/content/posts/**/*.md")
+    .filter((item) => !item.data.draft)
+    .sort((a, b) => b.date - a.date);
+});
+```
+
+Access in templates:
+
+```nunjucks
+{# All items #}
+{% for post in collections.posts %}
+  <article>
+    <h2><a href="{{ post.url }}">{{ post.data.title }}</a></h2>
+    <time datetime="{{ post.date | isoDate }}">{{ post.date | readableDate }}</time>
+  </article>
+{% endfor %}
+
+{# Limited items (e.g., "Recent Work" on homepage) #}
+{% for project in collections.projects | head(3) %}
+  <a href="{{ project.url }}" class="project-card">
+    <div class="project-card-image">
+      <img src="{{ project.data.image }}" alt="{{ project.data.imageAlt }}">
+    </div>
+    <h3 class="project-card-title">{{ project.data.title }}</h3>
+    <p class="project-card-meta">{{ project.data.category }}</p>
+  </a>
+{% endfor %}
+```
+
+---
+
+## 6. STIMULUS CONVENTIONS
+
+### Controller Naming
+
+| Convention | Example |
+|------------|---------|
+| File name | `mobile_nav_controller.js` |
+| Controller identifier | `mobile-nav` |
+| Data attribute | `data-controller="mobile-nav"` |
+
+The identifier is the file name without `_controller.js`, with underscores converted to hyphens.
+
+### File Organization
+
+```
+src/assets/js/
+├── application.js              # Stimulus setup + registrations
+└── controllers/
+    ├── toggle_controller.js    # Generic show/hide
+    ├── mobile_nav_controller.js
+    ├── clipboard_controller.js
+    └── ...
+```
+
+### Data Attribute Patterns
+
+```html
+<!-- Controller attachment -->
+<div data-controller="toggle">
+
+<!-- Action binding -->
+<button data-action="click->toggle#toggle">
+
+<!-- Target definition -->
+<div data-toggle-target="content">
+
+<!-- Value definition -->
+<div data-controller="toggle" data-toggle-open-value="true">
+
+<!-- Class configuration -->
+<div data-controller="toggle" data-toggle-hidden-class="invisible opacity-0">
+```
+
+### Controller Registration
+
+All controllers must be explicitly imported and registered in `application.js`:
+
+```javascript
+import ToggleController from "./controllers/toggle_controller.js";
+application.register("toggle", ToggleController);
+```
+
+Do not use autoloading or glob imports.
+
+---
+
+## 7. STYLING CONVENTIONS
+
+### @theme Tokens
+
+Define design tokens in `main.css` within the `@theme` directive:
+
+```css
+@theme {
+  /* Colors use semantic naming */
+  --color-primary-500: oklch(0.55 0.15 250);
+  --color-surface: oklch(0.99 0 0);
+  --color-text: oklch(0.15 0 0);
+
+  /* Fonts include full stack */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Custom spacing only if defaults insufficient */
+  --spacing-18: 4.5rem;
+}
+```
+
+### Token Naming
+
+| Category | Pattern | Example |
+|----------|---------|---------|
+| Colors | `--color-[semantic]-[shade]` | `--color-primary-500` |
+| Fonts | `--font-[purpose]` | `--font-display` |
+| Spacing | `--spacing-[value]` | `--spacing-18` |
+| Breakpoints | `--breakpoint-[name]` | `--breakpoint-tablet` |
+
+### Component Patterns
+
+Prefer utilities. Use `@layer components` sparingly:
+
+```css
+@layer components {
+  /* Only for truly reusable patterns */
+  .prose-custom {
+    @apply prose prose-lg prose-gray;
+  }
+}
+```
+
+### Responsive Approach
+
+1. **Mobile-first** — Base styles are mobile; layer up with breakpoint prefixes.
+2. **Standard breakpoints** — Use Tailwind defaults unless project requires custom.
+3. **Container queries** — Use `@container` for component-level responsiveness when appropriate.
+
+```html
+<!-- Mobile-first responsive -->
+<div class="text-base md:text-lg lg:text-xl">
+
+<!-- Container queries -->
+<div class="@container">
+  <div class="@md:flex @md:gap-4">
+```
+
+---
+
+## 8. BUILD & DEPLOY
+
+### npm Scripts
+
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `dev` | `eleventy --serve --watch` | Local development |
+| `build` | `NODE_ENV=production eleventy` | Production build |
+| `clean` | `rm -rf dist` | Remove build artifacts |
+
+### Development Workflow
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Site available at http://localhost:8080
+```
+
+### Production Build
+
+```bash
+# Clean previous build
+npm run clean
+
+# Build for production
+npm run build
+
+# Output in dist/
+```
+
+### GitHub Pages Deployment
+
+1. Repository must have GitHub Pages enabled.
+2. Set source to "GitHub Actions" in repository settings.
+3. Push to `main` branch triggers deployment.
+4. Custom domain configured in repository settings (not CNAME file).
+
+### Environment Considerations
+
+| Environment | NODE_ENV | CSS Minification | Source Maps |
+|-------------|----------|------------------|-------------|
+| Development | (unset) | No | Yes |
+| Production | production | Yes | No |
+
+---
+
+## 9. DOCUMENTATION REQUIREMENTS
+
+### README.md Structure
+
+Every project must include a README with these sections:
+
+```markdown
+# Project Name
+
+Brief description of the project.
+
+## Quick Start
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+
+## Project Structure
+
+[Tree diagram or brief explanation]
+
+## Development
+
+### Prerequisites
+
+- Node.js 20+
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run clean` | Remove build artifacts |
+
+### Adding Content
+
+[How to add pages, posts, etc.]
+
+### Styling
+
+[How to modify theme tokens, add custom styles]
+
+### JavaScript
+
+[How to add Stimulus controllers]
+
+## Deployment
+
+[GitHub Pages configuration, custom domain setup]
+
+## License
+
+[License information]
+```
+
+### CLAUDE.md Requirements
+
+Every project must include a CLAUDE.md for AI pairing context:
+
+```markdown
+# CLAUDE.md
+
+## Project Overview
+
+[One-paragraph description of what this site is and who it's for]
+
+## Stack
+
+- Eleventy 3.1.x (static site generator)
+- Tailwind CSS 4.1.x (CSS-first configuration)
+- Stimulus 3.2.x (JavaScript behavior)
+- Nunjucks (templating)
+
+## Key Files
+
+- `eleventy.config.js` — Build configuration
+- `src/assets/css/main.css` — Tailwind theme and styles
+- `src/assets/js/application.js` — Stimulus setup
+- `src/_data/site.json` — Site metadata
+- `src/_includes/layouts/base.njk` — Root layout
+
+## Commands
+
+\`\`\`bash
+npm run dev    # Development server
+npm run build  # Production build
+\`\`\`
+
+## Conventions
+
+- Layouts in `src/_includes/layouts/`
+- Partials in `src/_includes/partials/`
+- Stimulus controllers in `src/assets/js/controllers/`
+- Controllers named `[name]_controller.js`
+
+## Current State
+
+[What's implemented, what's pending]
+
+## Known Issues
+
+[Any quirks or workarounds]
+```
+
+### Inline Comment Philosophy
+
+1. **Explain why, not what** — Code shows what; comments explain why.
+2. **Section headers in config files** — Use comment blocks to delineate sections.
+3. **JSDoc for controllers** — Document usage examples in controller headers.
+4. **No commented-out code** — Delete unused code; Git has history.
+
+---
+
+## 10. QUALITY CHECKLIST
+
+Before marking a site "done," verify:
+
+### Build
+
+- [ ] `npm install` completes without errors
+- [ ] `npm run dev` starts server without errors
+- [ ] `npm run build` produces output in `dist/`
+- [ ] No console errors in browser
+
+### Structure
+
+- [ ] Directory structure matches Section 3
+- [ ] All required files present (eleventy.config.js, package.json, etc.)
+- [ ] No files outside defined structure
+
+### Templates
+
+- [ ] Base layout renders complete HTML document
+- [ ] All partials included without errors
+- [ ] Navigation reflects navigation.json
+- [ ] Site metadata populates from site.json
+
+### Styles
+
+- [ ] Tailwind CSS compiles without errors
+- [ ] @theme tokens defined and applied
+- [ ] No missing utility classes
+- [ ] Responsive behavior works at all breakpoints
+
+### JavaScript
+
+- [ ] Stimulus application initializes
+- [ ] All controllers registered
+- [ ] Interactive elements function correctly
+- [ ] No JavaScript errors in console
+
+### Content
+
+- [ ] All pages have required frontmatter
+- [ ] Meta descriptions present
+- [ ] No broken internal links
+
+### Accessibility
+
+- [ ] All images have alt text
+- [ ] Color contrast meets WCAG AA
+- [ ] Focus states visible
+- [ ] ARIA attributes correct
+
+### Performance
+
+- [ ] CSS minified in production build
+- [ ] No unnecessary dependencies
+- [ ] Images optimized
+
+### Documentation
+
+- [ ] README.md complete per Section 9
+- [ ] CLAUDE.md present and accurate
+
+### Deployment
+
+- [ ] GitHub Actions workflow present
+- [ ] Deployment succeeds
+- [ ] Site accessible at expected URL
+
+---
+
+## APPENDIX A: Troubleshooting
+
+### CSS Not Updating
+
+**Symptom:** Changes to `main.css` don't appear in browser.
+
+**Cause:** Tailwind processes before Eleventy, but browser may cache.
+
+**Fix:**
+1. Hard refresh (Cmd+Shift+R / Ctrl+Shift+R)
+2. Verify `eleventy.before` hook is running (add console.log)
+3. Check `dist/assets/css/main.css` has new content
+
+### Stimulus Controller Not Working
+
+**Symptom:** Data attributes present but no behavior.
+
+**Cause:** Controller not registered or import failed.
+
+**Fix:**
+1. Check browser console for import errors
+2. Verify controller registered in `application.js`
+3. Verify controller file exists and exports default class
+4. Check data-controller name matches registration
+
+### Nunjucks Template Errors
+
+**Symptom:** Build fails with Nunjucks error.
+
+**Common causes:**
+- Missing closing `{% endif %}` or `{% endfor %}`
+- Referencing undefined variable
+- Include path wrong (should be relative to `_includes`)
+
+**Fix:**
+1. Read error message for line number
+2. Check template syntax
+3. Verify included partial exists
+
+### GitHub Pages 404
+
+**Symptom:** Site deploys but pages return 404.
+
+**Cause:** Usually trailing slash or base URL issue.
+
+**Fix:**
+1. Ensure links use trailing slashes: `/about/` not `/about`
+2. Check repository Pages settings
+3. Verify `dist/` contains expected files
+
+---
+
+## APPENDIX B: Migration Notes
+
+### From Tailwind 3.x
+
+1. Remove `tailwind.config.js`
+2. Remove `postcss.config.js`
+3. Move theme configuration to `@theme` directive in `main.css`
+4. Update `@tailwind` directives to `@import "tailwindcss"`
+5. Update `ring` to `ring-3` (default changed from 3px to 1px)
+6. Update `shadow-sm` to `shadow-xs` (scale shifted)
+
+### From Eleventy 2.x
+
+1. Update `package.json` to `"type": "module"`
+2. Convert `module.exports` to `export default`
+3. Convert `require()` to `import`
+4. Rename `.eleventy.js` to `eleventy.config.js`
+
+---
+
+## APPENDIX C: Example Sites
+
+Sites built to this specification serve as reference implementations:
+
+1. **[carpinte.ro]** — Woodworking portfolio (first implementation)
+2. **[Additional sites as built]**
+
+---
+
+## APPENDIX D: Changelog
+
+### v1.1.0 (January 2026)
+
+Learnings from carpinte.ro implementation:
+
+**Added:**
+- `@source` directive documentation for Tailwind 4 class detection
+- Portfolio/projects collection pattern alongside blog posts
+- `project.njk` layout for portfolio items
+- `head` filter for limiting collection items (e.g., "Recent Work")
+- Portfolio-specific frontmatter fields (`category`, `imageAlt`)
+- Prose and card component patterns in CSS
+- `title` field in site.json (separate from `name`)
+- `about.njk` and `contact.njk` in directory structure
+- `pathPrefix` documentation for GitHub Pages project sites
+
+**Changed:**
+- Section structure expanded from `src/content/` to include `src/portfolio/`
+- cssnano version pinned to 7.x (was "Latest")
+- Collections now filter drafts by default
+- File specifications renumbered (4.10-4.17)
+
+**Clarified:**
+- "What Goes Where" table expanded with section landing pages
+- Component patterns shown commented but ready to uncomment
+
+### v1.0.0 (January 2026)
+
+Initial specification based on Eleventy 3.1, Tailwind 4.1, and Stimulus 3.2 stack.
+
+---
+
+*This specification is versioned. When patterns evolve, increment the version and document changes.*
