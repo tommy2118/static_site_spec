@@ -1,7 +1,7 @@
 # Static Site Specification
 
-**Version:** 1.1.0
-**Last Updated:** January 2026
+**Version:** 1.2.0
+**Last Updated:** 8 January 2026
 **Author:** Tommy A. Caruso Sr.
 
 ---
@@ -489,11 +489,22 @@ export default function (eleventyConfig) {
    ============================================================================= */
 
 @layer utilities {
-  /* Example utility:
-  .text-balance {
-    text-wrap: balance;
+  /* Text utilities */
+  /* .text-balance { text-wrap: balance; } */
+
+  /* Scroll animation utilities (for use with animate_controller.js) */
+  /* .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
   }
-  */
+  .animate-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .animate-delay-100 { transition-delay: 100ms; }
+  .animate-delay-200 { transition-delay: 200ms; }
+  .animate-delay-300 { transition-delay: 300ms; } */
 }
 ```
 
@@ -600,14 +611,212 @@ export default class extends Controller {
 }
 ```
 
-### 4.6 src/_data/site.json
+### 4.6 Additional Stimulus Controllers
+
+The following controllers are commonly needed. Add them as required.
+
+#### animate_controller.js (Scroll Animations)
+
+Replaces AOS or other animation libraries with native IntersectionObserver:
+
+`src/assets/js/controllers/animate_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Animate Controller
+ *
+ * Triggers CSS animations when elements scroll into view.
+ * Uses IntersectionObserver (no external dependencies).
+ *
+ * Usage:
+ *   <div data-controller="animate">
+ *     <div data-animate="fade-up">Animates on scroll</div>
+ *     <div data-animate="fade-up" data-animate-delay="200">Delayed</div>
+ *   </div>
+ *
+ * Requires CSS:
+ *   .animate-on-scroll { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+ *   .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+ */
+export default class extends Controller {
+  connect() {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const delay = entry.target.dataset.animateDelay || 0;
+            setTimeout(() => {
+              entry.target.classList.add("is-visible");
+            }, delay);
+            this.observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    this.animatedElements = this.element.querySelectorAll("[data-animate]");
+    this.animatedElements.forEach((el) => {
+      el.classList.add("animate-on-scroll");
+      this.observer.observe(el);
+    });
+  }
+
+  disconnect() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
+}
+```
+
+#### mobile_nav_controller.js (Mobile Navigation)
+
+Manages mobile menu with icon swapping:
+
+`src/assets/js/controllers/mobile_nav_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Mobile Nav Controller
+ *
+ * Handles mobile menu toggle with icon swapping.
+ *
+ * Usage:
+ *   <nav data-controller="mobile-nav">
+ *     <button data-action="click->mobile-nav#toggle" data-mobile-nav-target="button" aria-expanded="false">
+ *       <svg data-mobile-nav-target="iconOpen"><!-- hamburger --></svg>
+ *       <svg data-mobile-nav-target="iconClose" class="hidden"><!-- X --></svg>
+ *     </button>
+ *     <div data-mobile-nav-target="menu" class="hidden">
+ *       <!-- menu items -->
+ *     </div>
+ *   </nav>
+ */
+export default class extends Controller {
+  static targets = ["menu", "button", "iconOpen", "iconClose"];
+
+  connect() {
+    this.isOpen = false;
+  }
+
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this.sync();
+  }
+
+  sync() {
+    this.menuTarget.classList.toggle("hidden", !this.isOpen);
+    if (this.hasIconOpenTarget) {
+      this.iconOpenTarget.classList.toggle("hidden", this.isOpen);
+    }
+    if (this.hasIconCloseTarget) {
+      this.iconCloseTarget.classList.toggle("hidden", !this.isOpen);
+    }
+    this.buttonTarget.setAttribute("aria-expanded", this.isOpen);
+  }
+}
+```
+
+#### form_controller.js (Async Form Submission)
+
+Handles form submission with loading states and feedback:
+
+`src/assets/js/controllers/form_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Form Controller
+ *
+ * Handles async form submission with feedback messages.
+ * Works with Web3Forms, Formspree, or similar services.
+ *
+ * Usage:
+ *   <form data-controller="form" data-action="submit->form#submit" action="https://api.web3forms.com/submit" method="POST">
+ *     <input type="hidden" name="access_key" value="YOUR-ACCESS-KEY">
+ *     <input type="text" name="name" required>
+ *     <button type="submit" data-form-target="submitButton">Send</button>
+ *   </form>
+ *
+ * Optional conditional fields:
+ *   <select data-form-target="inquiryType" data-action="change->form#toggleConditional">
+ *   <div data-form-target="conditionalFields" class="hidden">
+ */
+export default class extends Controller {
+  static targets = ["submitButton", "inquiryType", "conditionalFields"];
+
+  async submit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    if (this.hasSubmitButtonTarget) {
+      this.submitButtonTarget.disabled = true;
+      this.originalButtonText = this.submitButtonTarget.textContent;
+      this.submitButtonTarget.textContent = "Sending...";
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        form.reset();
+        this.showMessage("Thank you! Your message has been sent.", "success");
+      } else {
+        throw new Error("Form submission failed");
+      }
+    } catch (error) {
+      this.showMessage("Sorry, there was an error. Please try again.", "error");
+    } finally {
+      if (this.hasSubmitButtonTarget) {
+        this.submitButtonTarget.disabled = false;
+        this.submitButtonTarget.textContent = this.originalButtonText;
+      }
+    }
+  }
+
+  toggleConditional() {
+    if (!this.hasInquiryTypeTarget || !this.hasConditionalFieldsTarget) return;
+    const showConditional = this.inquiryTypeTarget.value === "special-event";
+    this.conditionalFieldsTarget.classList.toggle("hidden", !showConditional);
+  }
+
+  showMessage(text, type) {
+    const existing = this.element.parentNode.querySelector(".form-message");
+    if (existing) existing.remove();
+
+    const message = document.createElement("div");
+    message.className = `form-message mt-4 p-4 rounded-lg text-center ${
+      type === "success"
+        ? "bg-green-100 text-green-800 border border-green-300"
+        : "bg-red-100 text-red-800 border border-red-300"
+    }`;
+    message.textContent = text;
+    this.element.insertAdjacentElement("afterend", message);
+    setTimeout(() => message.remove(), 5000);
+  }
+}
+```
+
+### 4.7 src/_data/site.json
 
 ```json
 {
   "name": "Site Name",
   "title": "Tagline or Descriptor",
+  "tagline": "Short memorable phrase",
   "description": "Site description for meta tags and SEO.",
   "url": "https://example.com",
+  "email": "contact@example.com",
   "author": {
     "name": "Author Name",
     "email": "author@example.com"
@@ -615,17 +824,29 @@ export default class extends Controller {
   "language": "en",
   "theme": {
     "color": "#ffffff"
+  },
+  "social": {
+    "patreon": "https://www.patreon.com/username",
+    "instagram": "https://instagram.com/username"
+  },
+  "stats": {
+    "metric1": "100+",
+    "metric2": "50",
+    "metric3": "100%"
   }
 }
 ```
 
 **Notes:**
 - `name`: Brand or personal name (used in header, footer, copyright)
-- `title`: Optional tagline or descriptor (e.g., "Woodworking & Craft")
-- `description`: Used for meta description and social sharing
+- `title`: Optional descriptor (e.g., "Woodworking & Craft")
+- `tagline`: Short phrase for hero sections (e.g., "Professional Theater, Anywhere")
+- `email`: Public contact email (displayed on site)
 - `theme.color`: Browser theme color (address bar, PWA)
+- `social`: External profile links (add as needed)
+- `stats`: Displayable metrics for impact sections (keys are flexible)
 
-### 4.7 src/_data/navigation.json
+### 4.8 src/_data/navigation.json
 
 ```json
 {
@@ -641,7 +862,7 @@ export default class extends Controller {
 }
 ```
 
-### 4.8 src/_includes/layouts/base.njk
+### 4.9 src/_includes/layouts/base.njk
 
 ```nunjucks
 <!DOCTYPE html>
@@ -662,7 +883,7 @@ export default class extends Controller {
 </html>
 ```
 
-### 4.9 src/_includes/layouts/page.njk
+### 4.10 src/_includes/layouts/page.njk
 
 ```nunjucks
 ---
@@ -680,7 +901,7 @@ layout: layouts/base.njk
 </div>
 ```
 
-### 4.10 src/_includes/layouts/project.njk (Portfolio Sites)
+### 4.11 src/_includes/layouts/project.njk (Portfolio Sites)
 
 ```nunjucks
 ---
@@ -727,7 +948,7 @@ layout: layouts/base.njk
 </article>
 ```
 
-### 4.11 src/_includes/partials/head.njk
+### 4.12 src/_includes/partials/head.njk
 
 ```nunjucks
 <meta charset="UTF-8">
@@ -761,18 +982,23 @@ layout: layouts/base.njk
 <link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
 
-{# Preconnect to external domains if needed #}
-{# <link rel="preconnect" href="https://fonts.googleapis.com"> #}
+{# Google Fonts - uncomment and customize as needed #}
+{# <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet"> #}
 
 {# Stylesheet #}
 <link rel="stylesheet" href="/assets/css/main.css">
 ```
 
-### 4.12 src/_includes/partials/nav.njk
+### 4.13 src/_includes/partials/nav.njk
+
+For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to `<main>` in base.njk.
 
 ```nunjucks
+{# Fixed header variant: <header class="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b"> #}
 <header class="bg-white border-b border-gray-200">
-  <nav class="container mx-auto px-4">
+  <nav class="container mx-auto px-4" data-controller="mobile-nav">
     <div class="flex items-center justify-between h-16">
       {# Logo / Site Name #}
       <a href="/" class="text-xl font-bold">
@@ -827,7 +1053,7 @@ layout: layouts/base.njk
 </header>
 ```
 
-### 4.13 src/_includes/partials/footer.njk
+### 4.14 src/_includes/partials/footer.njk
 
 ```nunjucks
 <footer class="bg-gray-50 border-t border-gray-200">
@@ -855,7 +1081,7 @@ layout: layouts/base.njk
 </footer>
 ```
 
-### 4.14 src/_includes/partials/scripts.njk
+### 4.15 src/_includes/partials/scripts.njk
 
 ```nunjucks
 {# Stimulus via importmap (no build step required) #}
@@ -883,7 +1109,7 @@ layout: layouts/base.njk
 #}
 ```
 
-### 4.15 src/index.njk
+### 4.16 src/index.njk
 
 ```nunjucks
 ---
@@ -902,7 +1128,7 @@ description: Welcome to the site.
 </section>
 ```
 
-### 4.16 .gitignore
+### 4.17 .gitignore
 
 ```
 # Dependencies
@@ -934,7 +1160,7 @@ npm-debug.log*
 .cache/
 ```
 
-### 4.17 .github/workflows/deploy.yml
+### 4.18 .github/workflows/deploy.yml
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -1510,12 +1736,37 @@ Before marking a site "done," verify:
 
 Sites built to this specification serve as reference implementations:
 
-1. **[carpinte.ro]** — Woodworking portfolio (first implementation)
-2. **[Additional sites as built]**
+1. **carpinte.ro** — Woodworking portfolio
+2. **nomad-theater-company** — Theater company website
 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.2.0 (8 January 2026)
+
+Learnings from nomad-theater-company implementation:
+
+**Added:**
+- `animate_controller.js` — Scroll animations using native IntersectionObserver (replaces AOS)
+- `mobile_nav_controller.js` — Mobile menu with hamburger/X icon swapping
+- `form_controller.js` — Async form submission with Web3Forms, loading states, feedback messages
+- Animation CSS utilities (`.animate-on-scroll`, `.is-visible`, delay classes)
+- Site.json fields: `tagline`, `email`, `social`, `stats`
+- Google Fonts preconnect pattern in head.njk
+- Fixed header pattern documentation in nav.njk
+
+**Changed:**
+- Expanded Section 4.6 to "Additional Stimulus Controllers" with three controller patterns
+- File specifications renumbered (4.7-4.18)
+- Enhanced navigation partial with mobile-nav controller attachment
+
+**Pattern notes:**
+- IntersectionObserver eliminates external animation library dependencies
+- Form controller handles conditional fields and async submission in one component
+- Stats object in site.json enables flexible "impact metrics" sections
+
+---
 
 ### v1.1.0 (January 2026)
 
