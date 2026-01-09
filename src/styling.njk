@@ -1,0 +1,88 @@
+---
+layout: layouts/docs.njk
+title: Styling
+description: Tailwind CSS 4 configuration and conventions.
+order: 12
+prevPage:
+  url: /content/
+  title: Content
+nextPage:
+  url: /deployment/
+  title: Deployment
+---
+
+<h2 id="css-first-config">CSS-First Configuration</h2>
+
+<p>Tailwind 4 uses CSS-first configuration via the <code>@theme</code> directive. No <code>tailwind.config.js</code> needed.</p>
+
+<pre><code class="language-css">@import "tailwindcss";
+
+@theme {
+  --color-brand-500: oklch(0.55 0.15 250);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --spacing-18: 4.5rem;
+}</code></pre>
+
+<h2 id="source-directive">Source Directive</h2>
+
+<p>Tell Tailwind where to scan for class usage:</p>
+
+<pre><code class="language-css">@source "../../../src/**/*.njk";
+@source "../../../src/**/*.md";
+@source "../../../src/**/*.html";</code></pre>
+
+<h2 id="theme-tokens">Theme Tokens</h2>
+
+<h3 id="colors">Colors</h3>
+
+<pre><code class="language-css">@theme {
+  --color-brand-50: oklch(0.97 0.01 250);
+  --color-brand-500: oklch(0.55 0.15 250);
+  --color-brand-900: oklch(0.25 0.08 250);
+}</code></pre>
+
+<h3 id="fonts">Fonts</h3>
+
+<pre><code class="language-css">@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}</code></pre>
+
+<h3 id="spacing">Spacing</h3>
+
+<pre><code class="language-css">@theme {
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+}</code></pre>
+
+<h2 id="layers">CSS Layers</h2>
+
+<pre><code class="language-css">@layer base {
+  /* Global element defaults */
+  html { scroll-behavior: smooth; }
+}
+
+@layer components {
+  /* Reusable component classes */
+  .btn { @apply px-4 py-2 rounded-lg; }
+}
+
+@layer utilities {
+  /* Custom utilities */
+  .scroll-mt-20 { scroll-margin-top: 5rem; }
+}</code></pre>
+
+<h2 id="responsive">Responsive Design</h2>
+
+<p>Mobile-first with standard breakpoints:</p>
+
+<ul>
+  <li><code>sm:</code> 640px</li>
+  <li><code>md:</code> 768px</li>
+  <li><code>lg:</code> 1024px</li>
+  <li><code>xl:</code> 1280px</li>
+</ul>
+
+<pre><code class="language-html">&lt;div class="text-sm md:text-base lg:text-lg"&gt;
+  Responsive text
+&lt;/div&gt;</code></pre>

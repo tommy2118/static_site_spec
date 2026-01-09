@@ -1,0 +1,20 @@
+{# Prev/Next Navigation for Documentation Pages #}
+{% if prevPage or nextPage %}
+<nav class="mt-12 pt-8 border-t border-gray-200 flex justify-between" aria-label="Page navigation">
+  {% if prevPage %}
+  <a href="{{ prevPage.url | url }}" class="group flex flex-col items-start">
+    <span class="text-sm text-gray-500 group-hover:text-gray-700">&larr; Previous</span>
+    <span class="font-medium text-gray-900 group-hover:text-gray-700">{{ prevPage.title }}</span>
+  </a>
+  {% else %}
+  <div></div>
+  {% endif %}
+
+  {% if nextPage %}
+  <a href="{{ nextPage.url | url }}" class="group flex flex-col items-end text-right">
+    <span class="text-sm text-gray-500 group-hover:text-gray-700">Next &rarr;</span>
+    <span class="font-medium text-gray-900 group-hover:text-gray-700">{{ nextPage.title }}</span>
+  </a>
+  {% endif %}
+</nav>
+{% endif %}

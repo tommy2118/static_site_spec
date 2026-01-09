@@ -1,7 +1,7 @@
 # Static Site Specification
 
-**Version:** 1.3.0
-**Last Updated:** 8 January 2026
+**Version:** 1.4.0
+**Last Updated:** 9 January 2026
 **Author:** Tommy A. Caruso Sr.
 
 ---
@@ -1977,6 +1977,32 @@ Sites built to this specification serve as reference implementations:
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.4.0 (9 January 2026)
+
+Learnings from engineers-manual implementation:
+
+**Added:**
+- `search_controller.js` — Pagefind integration with Cmd+K keyboard shortcut
+- `toc_controller.js` — Scroll-spy sidebar highlighting using getBoundingClientRect()
+- Dual TOC pattern: mobile `<details>` element + desktop sticky sidebar
+- Custom `toc` Eleventy filter for automatic h2/h3 heading extraction
+- Callout components (`.callout-note`, `.callout-warning`, `.callout-caution`)
+- Prev/next chapter navigation partial
+- Code block partial with filename header and copy button
+- `docs.njk` layout with automatic table of contents
+
+**Changed:**
+- Build script now includes Pagefind index generation: `eleventy && npx pagefind --site dist`
+- Section 4 expanded with search and TOC controller patterns
+
+**Pattern notes:**
+- Pagefind provides static site search without server infrastructure
+- TOC controller uses getBoundingClientRect() for reliable scroll position (offsetTop unreliable with nested elements)
+- Dual TOC pattern serves mobile (collapsible) and desktop (always-visible) UX
+- Callouts use border-left-4 pattern with semantic color coding
+
+---
 
 ### v1.3.0 (8 January 2026)
 

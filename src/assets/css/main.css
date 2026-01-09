@@ -1,0 +1,215 @@
+/* =============================================================================
+   TAILWIND CSS 4.x ENTRY POINT
+   ============================================================================= */
+
+@import "tailwindcss";
+
+/* =============================================================================
+   SOURCE PATHS
+   ============================================================================= */
+
+@source "../../../src/**/*.njk";
+@source "../../../src/**/*.md";
+@source "../../../src/**/*.html";
+
+/* =============================================================================
+   THEME CONFIGURATION
+   ============================================================================= */
+
+@theme {
+  /* Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  /* Prose typography defaults */
+  .prose h2 {
+    @apply text-2xl font-bold mt-10 mb-4 scroll-mt-20;
+  }
+
+  .prose h3 {
+    @apply text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+  }
+
+  .prose p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  .prose a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
+
+  .prose ul,
+  .prose ol {
+    @apply mb-4 pl-6;
+  }
+
+  .prose li {
+    @apply mb-2;
+  }
+
+  .prose code {
+    @apply font-mono text-sm bg-gray-100 px-1.5 py-0.5 rounded;
+  }
+
+  .prose pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6;
+  }
+
+  .prose pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600;
+  }
+
+  .prose table {
+    @apply w-full mb-6;
+  }
+
+  .prose th {
+    @apply text-left font-semibold p-3 bg-gray-100 border-b border-gray-200;
+  }
+
+  .prose td {
+    @apply p-3 border-b border-gray-100;
+  }
+}
+
+/* =============================================================================
+   COMPONENTS
+   ============================================================================= */
+
+@layer components {
+  /* Reading Progress Bar */
+  .reading-progress {
+    @apply fixed top-0 left-0 h-1 bg-blue-500 z-50;
+    width: 0%;
+    transition: width 0.1s ease-out;
+  }
+
+  /* Mobile Navigation */
+  .mobile-nav-backdrop {
+    @apply fixed inset-0 bg-gray-900/50 z-40 opacity-0 pointer-events-none transition-opacity;
+  }
+
+  .mobile-nav-backdrop.open {
+    @apply opacity-100 pointer-events-auto;
+  }
+
+  .mobile-nav-drawer {
+    @apply fixed top-0 right-0 h-full w-80 max-w-full bg-white z-50 shadow-xl;
+    @apply transform translate-x-full transition-transform;
+  }
+
+  .mobile-nav-drawer.open {
+    @apply translate-x-0;
+  }
+
+  /* TOC Active Link */
+  [data-toc-target="link"].active {
+    @apply border-blue-500 text-blue-600 font-medium;
+  }
+
+  /* Callout Components */
+  .callout {
+    @apply p-4 rounded-lg mb-6 border-l-4;
+  }
+
+  .callout-note {
+    @apply bg-blue-50 border-blue-500 text-blue-900;
+  }
+
+  .callout-warning {
+    @apply bg-amber-50 border-amber-500 text-amber-900;
+  }
+
+  .callout-caution {
+    @apply bg-red-50 border-red-500 text-red-900;
+  }
+
+  /* Code Block with Copy Button */
+  .code-block {
+    @apply relative;
+  }
+
+  .code-block-header {
+    @apply flex items-center justify-between px-4 py-2 bg-gray-800 text-gray-300 text-sm rounded-t-lg;
+  }
+
+  .code-block-content {
+    @apply rounded-t-none;
+  }
+
+  .copy-button {
+    @apply text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors;
+  }
+
+  /* Scroll Animations */
+  [data-controller="animate"] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  [data-controller="animate"].animate-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+   UTILITIES
+   ============================================================================= */
+
+@layer utilities {
+  .scroll-mt-20 {
+    scroll-margin-top: 5rem;
+  }
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  .reading-progress,
+  .mobile-nav-backdrop,
+  .mobile-nav-drawer,
+  header,
+  footer,
+  [data-controller="toc"] {
+    display: none !important;
+  }
+
+  .prose {
+    max-width: none;
+  }
+
+  .prose a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .prose a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}

@@ -1,0 +1,101 @@
+---
+layout: layouts/controller-demo.njk
+title: toggle
+description: Generic show/hide functionality for accordions, dropdowns, and FAQs.
+order: 21
+prevPage:
+  url: /controllers/
+  title: Controllers
+nextPage:
+  url: /controllers/mobile-nav/
+  title: mobile_nav
+demoContent: |
+  <div data-controller="toggle">
+    <button data-action="click->toggle#toggle"
+            class="w-full text-left px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex justify-between items-center">
+      <span class="font-medium">Click to toggle content</span>
+      <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
+    <div data-toggle-target="content" class="hidden mt-2 p-4 bg-white border border-gray-200 rounded-lg">
+      <p class="text-gray-600">This content is toggled by the controller. It can contain any HTML.</p>
+    </div>
+  </div>
+---
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;div data-controller="toggle"&gt;
+  &lt;button data-action="click->toggle#toggle"&gt;
+    Toggle
+  &lt;/button&gt;
+  &lt;div data-toggle-target="content" class="hidden"&gt;
+    Hidden content
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>content</code></td>
+      <td>The element to show/hide</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="actions">Actions</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>toggle</code></td>
+      <td>Toggle visibility</td>
+    </tr>
+    <tr>
+      <td><code>show</code></td>
+      <td>Show the content</td>
+    </tr>
+    <tr>
+      <td><code>hide</code></td>
+      <td>Hide the content</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["content"];
+  static values = {
+    hiddenClass: { type: String, default: "hidden" }
+  };
+
+  toggle() {
+    this.contentTarget.classList.toggle(this.hiddenClassValue);
+  }
+
+  show() {
+    this.contentTarget.classList.remove(this.hiddenClassValue);
+  }
+
+  hide() {
+    this.contentTarget.classList.add(this.hiddenClassValue);
+  }
+}</code></pre>

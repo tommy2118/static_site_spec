@@ -1,0 +1,67 @@
+---
+layout: layouts/base.njk
+---
+<div class="container mx-auto px-4 py-12 max-w-6xl">
+  <div class="lg:grid lg:grid-cols-[1fr_250px] lg:gap-12">
+    {# Main Content #}
+    <article>
+      {% if title %}
+      <header class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+        {% if description %}
+        <p class="mt-2 text-lg text-gray-600">{{ description }}</p>
+        {% endif %}
+      </header>
+      {% endif %}
+
+      {# Mobile TOC - details/summary #}
+      {% set headings = content | toc %}
+      {% if headings.length > 0 %}
+      <details class="lg:hidden mb-8 border border-gray-200 rounded-lg">
+        <summary class="px-4 py-3 font-medium cursor-pointer hover:bg-gray-50">
+          On this page
+        </summary>
+        <nav class="px-4 pb-4">
+          <ul class="space-y-2 text-sm">
+            {% for heading in headings %}
+            <li class="{% if heading.level == '3' %}ml-4{% endif %}">
+              <a href="#{{ heading.id }}" class="text-gray-600 hover:text-gray-900">
+                {{ heading.text }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </details>
+      {% endif %}
+
+      <div class="prose prose-gray max-w-none">
+        {{ content | safe }}
+      </div>
+
+      {# Prev/Next Navigation #}
+      {% include "partials/prev-next.njk" %}
+    </article>
+
+    {# Desktop Sidebar TOC #}
+    {% if headings.length > 0 %}
+    <aside class="hidden lg:block" data-controller="toc">
+      <nav class="sticky top-8">
+        <h2 class="text-sm font-semibold text-gray-900 mb-4">On this page</h2>
+        <ul class="space-y-2 text-sm border-l border-gray-200">
+          {% for heading in headings %}
+          <li>
+            <a href="#{{ heading.id }}"
+               data-toc-target="link"
+               data-id="{{ heading.id }}"
+               class="block py-1 {% if heading.level == '3' %}pl-6{% else %}pl-4{% endif %} -ml-px border-l border-transparent hover:border-gray-400 text-gray-600 hover:text-gray-900 transition-colors">
+              {{ heading.text }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </aside>
+    {% endif %}
+  </div>
+</div>

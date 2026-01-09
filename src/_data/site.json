@@ -1,0 +1,8 @@
+{
+  "title": "Static Site Spec",
+  "description": "The canonical architecture and conventions for building modern static websites with Eleventy, Tailwind CSS 4, and Stimulus.",
+  "author": "Tommy A. Caruso Sr.",
+  "url": "https://staticsitespec.dev",
+  "version": "1.4.0",
+  "github": "https://github.com/tommy2118/static_site_spec"
+}

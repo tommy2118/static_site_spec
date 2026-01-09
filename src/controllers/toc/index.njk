@@ -1,0 +1,138 @@
+---
+layout: layouts/controller-demo.njk
+title: toc
+description: Highlights the current section in a table of contents as you scroll.
+order: 27
+prevPage:
+  url: /controllers/clipboard/
+  title: clipboard
+nextPage:
+  url: /controllers/search/
+  title: search
+---
+
+<p class="callout callout-note">To see this controller in action, visit <a href="/getting-started/">Getting Started</a> on desktop. The "On this page" sidebar highlights the current section as you scroll.</p>
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;nav data-controller="toc" data-toc-offset-value="100"&gt;
+  &lt;a href="#section-1" data-toc-target="link" data-id="section-1"&gt;
+    Section 1
+  &lt;/a&gt;
+  &lt;a href="#section-2" data-toc-target="link" data-id="section-2"&gt;
+    Section 2
+  &lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>link</code></td>
+      <td>TOC links that get highlighted</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="values">Values</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Value</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>offset</code></td>
+      <td>Number</td>
+      <td><code>100</code></td>
+      <td>Offset from top for activation</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="css">Required CSS</h2>
+
+<pre><code class="language-css">[data-toc-target="link"] {
+  @apply text-gray-600 hover:text-gray-900 transition-colors;
+}
+
+[data-toc-target="link"].active {
+  @apply text-blue-600 font-medium border-blue-500;
+}</code></pre>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["link"];
+  static values = {
+    offset: { type: Number, default: 100 },
+  };
+
+  connect() {
+    this.headings = [];
+    this.collectHeadings();
+
+    if (this.headings.length > 0) {
+      this.boundScrollHandler = this.onScroll.bind(this);
+      window.addEventListener("scroll", this.boundScrollHandler, {
+        passive: true
+      });
+      this.highlightCurrentSection();
+    }
+  }
+
+  disconnect() {
+    if (this.boundScrollHandler) {
+      window.removeEventListener("scroll", this.boundScrollHandler);
+    }
+  }
+
+  collectHeadings() {
+    this.linkTargets.forEach((link) => {
+      const id = link.dataset.id || link.getAttribute("href")?.replace("#", "");
+      const heading = document.getElementById(id);
+      if (heading) {
+        this.headings.push({ id, element: heading, link });
+      }
+    });
+  }
+
+  onScroll() {
+    requestAnimationFrame(() => this.highlightCurrentSection());
+  }
+
+  highlightCurrentSection() {
+    const scrollPos = window.scrollY + this.offsetValue;
+    let currentHeading = null;
+
+    for (let i = this.headings.length - 1; i >= 0; i--) {
+      if (this.headings[i].element.offsetTop <= scrollPos) {
+        currentHeading = this.headings[i];
+        break;
+      }
+    }
+
+    this.linkTargets.forEach((link) => link.classList.remove("active"));
+    if (currentHeading) {
+      currentHeading.link.classList.add("active");
+    }
+  }
+}</code></pre>
+
+<h2 id="auto-scroll">Auto-Scroll TOC</h2>
+
+<p>If the TOC container is scrollable, the active item scrolls into view automatically.</p>

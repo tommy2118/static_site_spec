@@ -1,0 +1,125 @@
+---
+layout: layouts/docs.njk
+title: Stack
+description: The technology choices and why we made them.
+order: 2
+prevPage:
+  url: /getting-started/
+  title: Getting Started
+nextPage:
+  url: /structure/
+  title: Structure
+---
+
+<h2 id="core-technologies">Core Technologies</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Technology</th>
+      <th>Version</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Node.js</td>
+      <td>20+</td>
+      <td>Runtime</td>
+    </tr>
+    <tr>
+      <td>Eleventy<sup><a href="#ref-1">[1]</a></sup></td>
+      <td>3.1.x</td>
+      <td>Static site generator</td>
+    </tr>
+    <tr>
+      <td>Tailwind CSS<sup><a href="#ref-2">[2]</a></sup></td>
+      <td>4.1.x</td>
+      <td>Utility-first CSS</td>
+    </tr>
+    <tr>
+      <td>Stimulus<sup><a href="#ref-3">[3]</a></sup></td>
+      <td>3.2.x</td>
+      <td>JavaScript behavior</td>
+    </tr>
+    <tr>
+      <td>Nunjucks<sup><a href="#ref-4">[4]</a></sup></td>
+      <td>(bundled)</td>
+      <td>Templating</td>
+    </tr>
+    <tr>
+      <td>Pagefind<sup><a href="#ref-5">[5]</a></sup></td>
+      <td>1.x</td>
+      <td>Client-side search</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="module-system">Module System</h2>
+
+<p>All JavaScript uses <strong>ESM (ES Modules)</strong>. No CommonJS.</p>
+
+<pre><code class="language-json">{
+  "type": "module"
+}</code></pre>
+
+<h2 id="what-were-not-using">What We're NOT Using</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Technology</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Vite</td>
+      <td>Unnecessary complexity; Eleventy handles builds</td>
+    </tr>
+    <tr>
+      <td>React/Vue/Svelte</td>
+      <td>Violates "HTML-first" philosophy</td>
+    </tr>
+    <tr>
+      <td>SCSS/Sass</td>
+      <td>Tailwind 4's @theme replaces preprocessors</td>
+    </tr>
+    <tr>
+      <td>TypeScript</td>
+      <td>Unnecessary for static site JS</td>
+    </tr>
+    <tr>
+      <td>Alpine.js</td>
+      <td>Stimulus is the standard</td>
+    </tr>
+    <tr>
+      <td>tailwind.config.js</td>
+      <td>Tailwind 4 uses CSS-first config</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="philosophy">Philosophy</h2>
+
+<h3 id="html-first">HTML-First</h3>
+
+<p>The spec prioritizes server-rendered HTML with progressive enhancement. JavaScript adds behavior, not structure.</p>
+
+<h3 id="single-process-builds">Single-Process Builds</h3>
+
+<p>CSS processing happens inside Eleventy via the <code>eleventy.before</code> hook. No concurrent processes, no race conditions.</p>
+
+<h3 id="explicit-over-implicit">Explicit Over Implicit</h3>
+
+<p>Stimulus controllers are registered manually. No autoloading, no magic file scanning.</p>
+
+<h2 id="references">References</h2>
+
+<ol class="text-sm space-y-2">
+  <li id="ref-1"><a href="https://www.11ty.dev/docs/">Eleventy Documentation</a> — <a href="https://www.11ty.dev/docs/config/">Config</a>, <a href="https://www.11ty.dev/docs/filters/">Filters</a>, <a href="https://www.11ty.dev/docs/collections/">Collections</a></li>
+  <li id="ref-2"><a href="https://tailwindcss.com/docs">Tailwind CSS Documentation</a> — <a href="https://tailwindcss.com/docs/theme">@theme</a>, <a href="https://tailwindcss.com/docs/functions-and-directives">Directives</a>, <a href="https://tailwindcss.com/docs/upgrade-guide">v4 Upgrade</a></li>
+  <li id="ref-3"><a href="https://stimulus.hotwired.dev/handbook/introduction">Stimulus Handbook</a> — <a href="https://stimulus.hotwired.dev/reference/controllers">Controllers</a>, <a href="https://stimulus.hotwired.dev/reference/values">Values</a>, <a href="https://stimulus.hotwired.dev/reference/targets">Targets</a></li>
+  <li id="ref-4"><a href="https://mozilla.github.io/nunjucks/">Nunjucks Documentation</a> — <a href="https://mozilla.github.io/nunjucks/templating.html">Templating</a>, <a href="https://mozilla.github.io/nunjucks/templating.html#builtin-filters">Filters</a></li>
+  <li id="ref-5"><a href="https://pagefind.app/">Pagefind Documentation</a> — <a href="https://pagefind.app/docs/indexing/">Indexing</a>, <a href="https://pagefind.app/docs/ui/">Search UI</a></li>
+</ol>

@@ -1,0 +1,92 @@
+---
+layout: layouts/docs.njk
+title: Checklist
+description: Quality assurance checklist before launch.
+order: 14
+prevPage:
+  url: /deployment/
+  title: Deployment
+nextPage:
+  url: /controllers/
+  title: Controllers
+---
+
+<h2 id="build">Build</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> <code>npm run build</code> completes without errors</li>
+  <li><input type="checkbox" disabled> <code>dist/</code> directory is generated</li>
+  <li><input type="checkbox" disabled> CSS file is minified in production</li>
+  <li><input type="checkbox" disabled> No console errors in browser</li>
+</ul>
+
+<h2 id="structure">Structure</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> Directory structure matches spec</li>
+  <li><input type="checkbox" disabled> File naming follows conventions</li>
+  <li><input type="checkbox" disabled> No files outside <code>src/</code> except config</li>
+</ul>
+
+<h2 id="templates">Templates</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> All pages render without Nunjucks errors</li>
+  <li><input type="checkbox" disabled> Layouts extend correctly</li>
+  <li><input type="checkbox" disabled> Partials include correctly</li>
+  <li><input type="checkbox" disabled> Data files load in templates</li>
+</ul>
+
+<h2 id="css">CSS</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> Tailwind classes apply correctly</li>
+  <li><input type="checkbox" disabled> Custom theme tokens work</li>
+  <li><input type="checkbox" disabled> Responsive breakpoints function</li>
+  <li><input type="checkbox" disabled> No unstyled content flash</li>
+</ul>
+
+<h2 id="javascript">JavaScript</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> Stimulus application starts</li>
+  <li><input type="checkbox" disabled> Controllers initialize on page load</li>
+  <li><input type="checkbox" disabled> Interactive elements respond</li>
+  <li><input type="checkbox" disabled> No JS console errors</li>
+</ul>
+
+<h2 id="accessibility">Accessibility</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> All images have alt text</li>
+  <li><input type="checkbox" disabled> Color contrast meets WCAG AA</li>
+  <li><input type="checkbox" disabled> Focus states are visible</li>
+  <li><input type="checkbox" disabled> ARIA attributes are correct</li>
+  <li><input type="checkbox" disabled> Keyboard navigation works</li>
+</ul>
+
+<h2 id="performance">Performance</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> CSS is minified</li>
+  <li><input type="checkbox" disabled> No unnecessary dependencies</li>
+  <li><input type="checkbox" disabled> Images are optimized</li>
+  <li><input type="checkbox" disabled> Fonts load efficiently</li>
+</ul>
+
+<h2 id="documentation">Documentation</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> README.md is complete</li>
+  <li><input type="checkbox" disabled> CLAUDE.md provides AI context</li>
+  <li><input type="checkbox" disabled> Setup instructions are accurate</li>
+</ul>
+
+<h2 id="deployment-check">Deployment</h2>
+
+<ul>
+  <li><input type="checkbox" disabled> GitHub Actions workflow exists</li>
+  <li><input type="checkbox" disabled> Build succeeds in CI</li>
+  <li><input type="checkbox" disabled> Site is accessible at URL</li>
+  <li><input type="checkbox" disabled> All links work</li>
+</ul>

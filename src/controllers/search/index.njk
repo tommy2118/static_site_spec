@@ -1,0 +1,149 @@
+---
+layout: layouts/controller-demo.njk
+title: search
+description: Search modal with Pagefind integration and keyboard shortcuts.
+order: 28
+prevPage:
+  url: /controllers/toc/
+  title: toc
+nextPage:
+  url: /examples/
+  title: Examples
+---
+
+<p class="callout callout-note">Press <kbd>Cmd+K</kbd> (Mac) or <kbd>Ctrl+K</kbd> (Windows/Linux) right now. The search modal that opens is powered by this controller.</p>
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;div data-controller="search"&gt;
+  &lt;!-- Trigger Button --&gt;
+  &lt;button data-action="click->search#open"&gt;
+    Search
+  &lt;/button&gt;
+
+  &lt;!-- Modal --&gt;
+  &lt;div data-search-target="modal"
+       data-action="click->search#closeOnBackdrop keydown.escape@window->search#close"
+       class="hidden fixed inset-0 bg-gray-900/50 z-50"&gt;
+    &lt;div class="container mx-auto px-4 py-16 max-w-2xl"&gt;
+      &lt;div class="bg-white rounded-lg shadow-xl"&gt;
+        &lt;div class="flex justify-between items-center p-4 border-b"&gt;
+          &lt;h2&gt;Search&lt;/h2&gt;
+          &lt;button data-action="click->search#close"&gt;Close&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div data-search-target="container" class="p-4"&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>modal</code></td>
+      <td>The modal overlay</td>
+    </tr>
+    <tr>
+      <td><code>container</code></td>
+      <td>Container for Pagefind UI</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="keyboard">Keyboard Shortcuts</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Shortcut</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><kbd>Cmd+K</kbd> / <kbd>Ctrl+K</kbd></td>
+      <td>Open search</td>
+    </tr>
+    <tr>
+      <td><kbd>Escape</kbd></td>
+      <td>Close search</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="pagefind">Pagefind Setup</h2>
+
+<p>Add Pagefind to your build script:</p>
+
+<pre><code class="language-json">{
+  "scripts": {
+    "build": "NODE_ENV=production eleventy && npx pagefind --site dist"
+  }
+}</code></pre>
+
+<p>Include Pagefind assets in your scripts partial:</p>
+
+<pre><code class="language-html">&lt;link href="/pagefind/pagefind-ui.css" rel="stylesheet"&gt;
+&lt;script src="/pagefind/pagefind-ui.js"&gt;&lt;/script&gt;</code></pre>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["modal", "container"];
+
+  connect() {
+    this.isOpen = false;
+    this.boundHandleKeydown = this.handleKeydown.bind(this);
+    document.addEventListener("keydown", this.boundHandleKeydown);
+    this.initializePagefind();
+  }
+
+  disconnect() {
+    document.removeEventListener("keydown", this.boundHandleKeydown);
+  }
+
+  initializePagefind() {
+    if (typeof PagefindUI !== "undefined" && this.hasContainerTarget) {
+      new PagefindUI({
+        element: this.containerTarget,
+        showSubResults: true,
+        showImages: false,
+      });
+    }
+  }
+
+  open() {
+    this.isOpen = true;
+    this.modalTarget.classList.remove("hidden");
+    setTimeout(() => {
+      const input = this.modalTarget.querySelector("input");
+      if (input) input.focus();
+    }, 100);
+  }
+
+  close() {
+    this.isOpen = false;
+    this.modalTarget.classList.add("hidden");
+  }
+
+  handleKeydown(event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === "k") {
+      event.preventDefault();
+      this.open();
+    }
+  }
+
+  closeOnBackdrop(event) {
+    if (event.target === this.modalTarget) this.close();
+  }
+}</code></pre>

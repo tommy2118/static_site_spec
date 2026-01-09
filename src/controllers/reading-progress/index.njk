@@ -1,0 +1,79 @@
+---
+layout: layouts/controller-demo.njk
+title: reading_progress
+description: Progress bar showing scroll position for long-form content.
+order: 25
+prevPage:
+  url: /controllers/form/
+  title: form
+nextPage:
+  url: /controllers/clipboard/
+  title: clipboard
+---
+
+<p class="callout callout-note">See the blue bar at the very top of your browser? Scroll this page and watch it grow. That's this controller in action.</p>
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;!-- Place at the top of your layout --&gt;
+&lt;div data-controller="reading-progress" class="reading-progress"&gt;&lt;/div&gt;</code></pre>
+
+<h2 id="css">Required CSS</h2>
+
+<pre><code class="language-css">.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background-color: theme('colors.blue.500');
+  z-index: 50;
+  width: 0%;
+  transition: width 0.1s ease-out;
+}</code></pre>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  connect() {
+    this.boundUpdateProgress = this.updateProgress.bind(this);
+    window.addEventListener("scroll", this.boundUpdateProgress, {
+      passive: true
+    });
+    this.updateProgress();
+  }
+
+  disconnect() {
+    window.removeEventListener("scroll", this.boundUpdateProgress);
+  }
+
+  updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    this.element.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+  }
+}</code></pre>
+
+<h2 id="features">Features</h2>
+
+<ul>
+  <li>Uses passive scroll listener for performance</li>
+  <li>Smooth width transitions</li>
+  <li>Clamps progress between 0-100%</li>
+  <li>Properly cleans up on disconnect</li>
+</ul>
+
+<h2 id="customization">Customization</h2>
+
+<p>Adjust the appearance via CSS:</p>
+
+<pre><code class="language-css">.reading-progress {
+  height: 4px;                      /* Thicker bar */
+  background: linear-gradient(     /* Gradient */
+    to right,
+    theme('colors.blue.500'),
+    theme('colors.purple.500')
+  );
+}</code></pre>

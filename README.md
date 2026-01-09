@@ -1,49 +1,53 @@
-# Static Site Specification
+# Static Site Spec
 
-A canonical architecture and conventions document for building static websites with modern tooling.
+The canonical architecture and conventions for building modern static websites with Eleventy, Tailwind CSS 4, and Stimulus.
+
+**Live site:** [staticsitespec.dev](https://staticsitespec.dev) (or via GitHub Pages)
+
+## Quick Start
+
+```bash
+npm install
+npm run dev
+```
+
+Development server runs at `http://localhost:8080`.
+
+## What This Is
+
+This repository contains:
+
+1. **STATIC_SITE_SPEC.md** — The canonical specification document
+2. **The documentation site** — A live reference built to the spec itself (meta!)
 
 ## Stack
 
-- **Eleventy 3.1.x** — Static site generator
-- **Tailwind CSS 4.1.x** — Utility-first CSS (CSS-first configuration)
-- **Stimulus 3.2.x** — Lightweight JavaScript behavior
-- **Nunjucks** — Templating (bundled with Eleventy)
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Eleventy | 3.1.x | Static site generator |
+| Tailwind CSS | 4.1.x | Utility-first CSS |
+| Stimulus | 3.2.x | JavaScript behavior |
+| Pagefind | 1.x | Client-side search |
 
-## Who It's For
+## npm Scripts
 
-- **Primary:** Claude Code and AI assistants executing site builds
-- **Secondary:** Human developers who need to understand or maintain sites built to this spec
-
-## What's Included
-
-The spec covers:
-
-- Directory structure and naming conventions
-- Complete file templates (config, layouts, partials, CSS, JS)
-- Content authoring patterns (frontmatter, collections, Markdown)
-- Stimulus controllers (toggle, animate, mobile-nav, form)
-- Tailwind 4 theme configuration with `@theme` and `@source`
-- Build and deployment (GitHub Pages)
-- Documentation requirements
-- Quality checklist
-
-## Usage
-
-Reference [STATIC_SITE_SPEC.md](./STATIC_SITE_SPEC.md) when building a new static site. The spec is prescriptive — follow the patterns exactly for consistency across projects.
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Development server with hot reload |
+| `npm run build` | Production build + Pagefind index |
+| `npm run clean` | Remove dist/ |
 
 ## Example Sites
 
 Sites built to this specification:
 
-1. **carpinte.ro** — Woodworking portfolio
-2. **nomad-theater-company** — Theater company website
-3. **thedbtresource.com** — Educational resource site
+- **nomad-theater-company** — Theater company (v1.2)
+- **thedbtresource.com** — Educational resource (v1.3)
+- **engineers-manual** — Technical reference book
 
 ## Version
 
-Current: **v1.3.0**
-
-See Appendix D in the spec for changelog.
+Current: **v1.4.0**
 
 ## License
 

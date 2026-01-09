@@ -1,0 +1,76 @@
+---
+layout: layouts/docs.njk
+title: Getting Started
+description: Get up and running with the Static Site Spec in 5 minutes.
+order: 1
+prevPage:
+  url: /
+  title: Home
+nextPage:
+  url: /stack/
+  title: Stack
+---
+
+<h2 id="quick-start">Quick Start</h2>
+
+<p>Create a new project following the Static Site Spec:</p>
+
+<pre><code class="language-bash"># Create project directory
+mkdir my-site && cd my-site
+
+# Initialize with npm
+npm init -y
+
+# Install dependencies
+npm install @11ty/eleventy @hotwired/stimulus tailwindcss @tailwindcss/postcss postcss cssnano</code></pre>
+
+<h2 id="project-structure">Project Structure</h2>
+
+<p>Create the following directory structure:</p>
+
+<pre><code>my-site/
+├── src/
+│   ├── _data/
+│   ├── _includes/
+│   │   ├── layouts/
+│   │   └── partials/
+│   ├── assets/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── images/
+│   └── index.njk
+├── eleventy.config.js
+└── package.json</code></pre>
+
+<h2 id="configuration">Configuration</h2>
+
+<p>Set up your <code>eleventy.config.js</code> with CSS processing via PostCSS:</p>
+
+<pre><code class="language-javascript">import postcss from "postcss";
+import tailwindcss from "@tailwindcss/postcss";
+
+export default function (eleventyConfig) {
+  // CSS processing happens in eleventy.before hook
+  // See Files > Config for full example
+
+  return {
+    dir: {
+      input: "src",
+      output: "dist",
+    },
+  };
+}</code></pre>
+
+<h2 id="run-development">Run Development Server</h2>
+
+<pre><code class="language-bash">npm run dev</code></pre>
+
+<p>Your site will be available at <code>http://localhost:8080</code>.</p>
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li><a href="/stack/">Learn about the stack decisions</a></li>
+  <li><a href="/structure/">Understand the directory structure</a></li>
+  <li><a href="/controllers/">Explore Stimulus controllers</a></li>
+</ul>

@@ -1,0 +1,120 @@
+---
+layout: layouts/controller-demo.njk
+title: mobile_nav
+description: Mobile navigation drawer with backdrop and keyboard support.
+order: 22
+prevPage:
+  url: /controllers/toggle/
+  title: toggle
+nextPage:
+  url: /controllers/animate/
+  title: animate
+---
+
+<p class="callout callout-note">Resize your browser to mobile width (or use devtools), then click the hamburger menu in the top right. That drawer is powered by this controller.</p>
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;body data-controller="mobile-nav"&gt;
+  &lt;!-- Toggle Button --&gt;
+  &lt;button data-mobile-nav-target="toggle"
+          data-action="click->mobile-nav#open"
+          aria-expanded="false"&gt;
+    Menu
+  &lt;/button&gt;
+
+  &lt;!-- Backdrop --&gt;
+  &lt;div data-mobile-nav-target="backdrop"
+       data-action="click->mobile-nav#closeOnBackdrop"
+       class="mobile-nav-backdrop"&gt;&lt;/div&gt;
+
+  &lt;!-- Drawer --&gt;
+  &lt;nav data-mobile-nav-target="drawer"
+       class="mobile-nav-drawer"&gt;
+    &lt;button data-action="click->mobile-nav#close"&gt;Close&lt;/button&gt;
+    &lt;!-- Navigation links --&gt;
+  &lt;/nav&gt;
+&lt;/body&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>toggle</code></td>
+      <td>Button that opens the drawer</td>
+    </tr>
+    <tr>
+      <td><code>backdrop</code></td>
+      <td>Semi-transparent overlay</td>
+    </tr>
+    <tr>
+      <td><code>drawer</code></td>
+      <td>The navigation panel</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="actions">Actions</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>open</code></td>
+      <td>Open the drawer</td>
+    </tr>
+    <tr>
+      <td><code>close</code></td>
+      <td>Close the drawer</td>
+    </tr>
+    <tr>
+      <td><code>toggle</code></td>
+      <td>Toggle open/close</td>
+    </tr>
+    <tr>
+      <td><code>closeOnBackdrop</code></td>
+      <td>Close when clicking backdrop</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="css">Required CSS</h2>
+
+<pre><code class="language-css">.mobile-nav-backdrop {
+  @apply fixed inset-0 bg-gray-900/50 z-40;
+  @apply opacity-0 pointer-events-none transition-opacity;
+}
+
+.mobile-nav-backdrop.open {
+  @apply opacity-100 pointer-events-auto;
+}
+
+.mobile-nav-drawer {
+  @apply fixed top-0 right-0 h-full w-80 bg-white z-50 shadow-xl;
+  @apply transform translate-x-full transition-transform;
+}
+
+.mobile-nav-drawer.open {
+  @apply translate-x-0;
+}</code></pre>
+
+<h2 id="features">Features</h2>
+
+<ul>
+  <li>Escape key closes drawer</li>
+  <li>Backdrop click closes drawer</li>
+  <li>Body scroll is locked when open</li>
+  <li>ARIA attributes update automatically</li>
+</ul>

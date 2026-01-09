@@ -1,0 +1,17 @@
+<footer class="border-t border-gray-200 bg-gray-50">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-sm text-gray-600">
+        <p>{{ site.title }} v{{ site.version }}</p>
+        <p class="mt-1">&copy; {% year %} {{ site.author }}. MIT License.</p>
+      </div>
+
+      <div class="flex items-center gap-6 text-sm">
+        <a href="{{ '/changelog/' | url }}" class="text-gray-600 hover:text-gray-900">Changelog</a>
+        {% if site.github %}
+        <a href="{{ site.github }}" class="text-gray-600 hover:text-gray-900">GitHub</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</footer>

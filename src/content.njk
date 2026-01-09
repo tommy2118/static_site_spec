@@ -1,0 +1,91 @@
+---
+layout: layouts/docs.njk
+title: Content
+description: Content authoring patterns and frontmatter conventions.
+order: 11
+prevPage:
+  url: /files/
+  title: Files
+nextPage:
+  url: /styling/
+  title: Styling
+---
+
+<h2 id="frontmatter">Frontmatter Schema</h2>
+
+<p>Every content file starts with YAML frontmatter:</p>
+
+<pre><code class="language-yaml">---
+layout: layouts/page.njk    # Required
+title: Page Title           # Required
+description: Meta desc      # Recommended
+date: 2026-01-08           # Recommended
+draft: false               # Optional
+tags: [tag1, tag2]         # Optional
+image: /path/to/og.jpg     # Optional
+---</code></pre>
+
+<h2 id="layouts">Layout Options</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Layout</th>
+      <th>Use Case</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>layouts/base.njk</code></td>
+      <td>Raw HTML shell, rarely used directly</td>
+    </tr>
+    <tr>
+      <td><code>layouts/page.njk</code></td>
+      <td>Standard content pages</td>
+    </tr>
+    <tr>
+      <td><code>layouts/docs.njk</code></td>
+      <td>Documentation with sidebar TOC</td>
+    </tr>
+    <tr>
+      <td><code>layouts/post.njk</code></td>
+      <td>Blog posts (if using blog)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="markdown">Markdown Content</h2>
+
+<p>Markdown files are processed with Nunjucks, so you can use template features:</p>
+
+<pre><code class="language-markdown"># {% raw %}{{ title }}{% endraw %}
+
+Published on {% raw %}{{ date | readableDate }}{% endraw %}
+
+## Section Heading
+
+Regular markdown content here.
+
+{% raw %}{% include "partials/cta.njk" %}{% endraw %}</code></pre>
+
+<h2 id="collections">Collections</h2>
+
+<p>Define collections in <code>eleventy.config.js</code>:</p>
+
+<pre><code class="language-javascript">eleventyConfig.addCollection("posts", function (collectionApi) {
+  return collectionApi
+    .getFilteredByGlob("src/content/posts/**/*.md")
+    .filter((item) => !item.data.draft)
+    .sort((a, b) => b.date - a.date);
+});</code></pre>
+
+<h2 id="data-cascade">Data Cascade</h2>
+
+<p>Eleventy merges data from multiple sources (highest priority first):</p>
+
+<ol>
+  <li>Frontmatter in the template</li>
+  <li>Template-specific data file (<code>page.11tydata.js</code>)</li>
+  <li>Directory data file (<code>posts.json</code>)</li>
+  <li>Global data files (<code>_data/*.json</code>)</li>
+</ol>

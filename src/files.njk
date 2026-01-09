@@ -1,0 +1,108 @@
+---
+layout: layouts/docs.njk
+title: Files
+description: Complete file specifications and templates.
+order: 10
+prevPage:
+  url: /structure/
+  title: Structure
+nextPage:
+  url: /content/
+  title: Content
+---
+
+<h2 id="package-json">package.json</h2>
+
+<pre><code class="language-json">{
+  "name": "project-name",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "eleventy --serve --watch",
+    "build": "NODE_ENV=production eleventy",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.0",
+    "@hotwired/stimulus": "^3.2.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "cssnano": "^7.0.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.0"
+  }
+}</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li><code>type: "module"</code> is required for ESM</li>
+  <li>Only three scripts: <code>dev</code>, <code>build</code>, <code>clean</code></li>
+  <li>All CSS processing happens through Eleventy hooks</li>
+</ul>
+
+<h2 id="eleventy-config">eleventy.config.js</h2>
+
+<pre><code class="language-javascript">import fs from "fs";
+import path from "path";
+import postcss from "postcss";
+import tailwindcss from "@tailwindcss/postcss";
+import cssnano from "cssnano";
+
+export default function (eleventyConfig) {
+  // Passthrough copies
+  eleventyConfig.addPassthroughCopy({ "src/assets/js": "assets/js" });
+  eleventyConfig.addPassthroughCopy({ "src/assets/images": "assets/images" });
+
+  // CSS processing via PostCSS
+  const cssProcessor = postcss([
+    tailwindcss(),
+    ...(process.env.NODE_ENV === "production"
+      ? [cssnano({ preset: "default" })]
+      : []),
+  ]);
+
+  eleventyConfig.on("eleventy.before", async () => {
+    // Process CSS here
+  });
+
+  return {
+    dir: { input: "src", output: "dist" },
+  };
+}</code></pre>
+
+<h2 id="main-css">main.css</h2>
+
+<pre><code class="language-css">@import "tailwindcss";
+
+@source "../../../src/**/*.njk";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+}
+
+@layer components {
+  /* Component classes here */
+}</code></pre>
+
+<h2 id="application-js">application.js</h2>
+
+<pre><code class="language-javascript">import { Application } from "@hotwired/stimulus";
+
+const application = Application.start();
+
+import ToggleController from "./controllers/toggle_controller.js";
+application.register("toggle", ToggleController);
+
+export { application };</code></pre>
+
+<h2 id="site-json">site.json</h2>
+
+<pre><code class="language-json">{
+  "title": "Site Title",
+  "description": "Site description for SEO",
+  "author": "Author Name",
+  "url": "https://example.com"
+}</code></pre>

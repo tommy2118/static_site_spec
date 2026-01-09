@@ -1,0 +1,119 @@
+---
+layout: layouts/controller-demo.njk
+title: animate
+description: Scroll-triggered animations using IntersectionObserver.
+order: 23
+prevPage:
+  url: /controllers/mobile-nav/
+  title: mobile_nav
+nextPage:
+  url: /controllers/form/
+  title: form
+---
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;div data-controller="animate"
+     data-animate-class-value="animate-fade-in"&gt;
+  Content that animates when scrolled into view
+&lt;/div&gt;
+
+&lt;!-- With delay for staggered animations --&gt;
+&lt;div data-controller="animate"
+     data-animate-class-value="animate-fade-in"
+     data-animate-delay-value="200"&gt;
+  Delayed animation
+&lt;/div&gt;</code></pre>
+
+<h2 id="values">Values</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Value</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>class</code></td>
+      <td>String</td>
+      <td><code>"animate-in"</code></td>
+      <td>CSS class to add when visible</td>
+    </tr>
+    <tr>
+      <td><code>delay</code></td>
+      <td>Number</td>
+      <td><code>0</code></td>
+      <td>Delay in milliseconds</td>
+    </tr>
+    <tr>
+      <td><code>threshold</code></td>
+      <td>Number</td>
+      <td><code>0.1</code></td>
+      <td>Visibility threshold (0-1)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="css">CSS Animation Classes</h2>
+
+<pre><code class="language-css">/* Initial state - invisible */
+[data-controller="animate"] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Animated state */
+.animate-fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}</code></pre>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static values = {
+    class: { type: String, default: "animate-in" },
+    delay: { type: Number, default: 0 },
+    threshold: { type: Number, default: 0.1 },
+  };
+
+  connect() {
+    this.observer = new IntersectionObserver(
+      (entries) => this.handleIntersect(entries),
+      { threshold: this.thresholdValue }
+    );
+    this.observer.observe(this.element);
+  }
+
+  disconnect() {
+    this.observer.disconnect();
+  }
+
+  handleIntersect(entries) {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          this.element.classList.add(this.classValue);
+        }, this.delayValue);
+        this.observer.unobserve(this.element);
+      }
+    });
+  }
+}</code></pre>
+
+<h2 id="staggered">Staggered Animations</h2>
+
+<p>Use increasing delay values for a staggered effect:</p>
+
+<pre><code class="language-html">&lt;div class="grid grid-cols-3 gap-4"&gt;
+  &lt;div data-controller="animate" data-animate-delay-value="0"&gt;Card 1&lt;/div&gt;
+  &lt;div data-controller="animate" data-animate-delay-value="100"&gt;Card 2&lt;/div&gt;
+  &lt;div data-controller="animate" data-animate-delay-value="200"&gt;Card 3&lt;/div&gt;
+&lt;/div&gt;</code></pre>

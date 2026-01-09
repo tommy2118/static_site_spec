@@ -1,0 +1,32 @@
+---
+layout: layouts/base.njk
+---
+<div class="container mx-auto px-4 py-12 max-w-4xl">
+  <header class="mb-8">
+    <p class="text-sm text-gray-500 mb-2">
+      <a href="/controllers/" class="hover:text-gray-700">&larr; Controllers</a>
+    </p>
+    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+    {% if description %}
+    <p class="mt-2 text-lg text-gray-600">{{ description }}</p>
+    {% endif %}
+  </header>
+
+  {# Live Demo Section #}
+  {% if demoContent %}
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Live Demo</h2>
+    <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg">
+      {{ demoContent | safe }}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Main Content #}
+  <div class="prose prose-gray max-w-none">
+    {{ content | safe }}
+  </div>
+
+  {# Prev/Next Navigation #}
+  {% include "partials/prev-next.njk" %}
+</div>

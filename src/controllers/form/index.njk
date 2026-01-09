@@ -1,0 +1,144 @@
+---
+layout: layouts/controller-demo.njk
+title: form
+description: Async form submission with loading states and validation.
+order: 24
+prevPage:
+  url: /controllers/animate/
+  title: animate
+nextPage:
+  url: /controllers/reading-progress/
+  title: reading_progress
+---
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;form data-controller="form"
+      data-action="submit->form#submit"
+      data-form-endpoint-value="https://api.web3forms.com/submit"&gt;
+
+  &lt;input type="hidden" name="access_key" value="YOUR_KEY"&gt;
+
+  &lt;input type="text" name="name" required&gt;
+  &lt;input type="email" name="email" required&gt;
+  &lt;textarea name="message" required&gt;&lt;/textarea&gt;
+
+  &lt;button type="submit" data-form-target="submit"&gt;
+    &lt;span data-form-target="submitText"&gt;Send&lt;/span&gt;
+    &lt;span data-form-target="loadingText" class="hidden"&gt;Sending...&lt;/span&gt;
+  &lt;/button&gt;
+
+  &lt;div data-form-target="success" class="hidden"&gt;
+    Message sent successfully!
+  &lt;/div&gt;
+
+  &lt;div data-form-target="error" class="hidden"&gt;
+    Something went wrong. Please try again.
+  &lt;/div&gt;
+&lt;/form&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>submit</code></td>
+      <td>Submit button (disabled during submission)</td>
+    </tr>
+    <tr>
+      <td><code>submitText</code></td>
+      <td>Default button text</td>
+    </tr>
+    <tr>
+      <td><code>loadingText</code></td>
+      <td>Loading state text</td>
+    </tr>
+    <tr>
+      <td><code>success</code></td>
+      <td>Success message container</td>
+    </tr>
+    <tr>
+      <td><code>error</code></td>
+      <td>Error message container</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="values">Values</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Value</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>endpoint</code></td>
+      <td>String</td>
+      <td>Form submission URL</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["submit", "submitText", "loadingText", "success", "error"];
+  static values = { endpoint: String };
+
+  async submit(event) {
+    event.preventDefault();
+
+    this.setLoading(true);
+    this.hideMessages();
+
+    try {
+      const formData = new FormData(this.element);
+      const response = await fetch(this.endpointValue, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        this.showSuccess();
+        this.element.reset();
+      } else {
+        this.showError();
+      }
+    } catch (error) {
+      this.showError();
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  setLoading(loading) {
+    this.submitTarget.disabled = loading;
+    this.submitTextTarget.classList.toggle("hidden", loading);
+    this.loadingTextTarget.classList.toggle("hidden", !loading);
+  }
+
+  hideMessages() {
+    this.successTarget.classList.add("hidden");
+    this.errorTarget.classList.add("hidden");
+  }
+
+  showSuccess() {
+    this.successTarget.classList.remove("hidden");
+  }
+
+  showError() {
+    this.errorTarget.classList.remove("hidden");
+  }
+}</code></pre>

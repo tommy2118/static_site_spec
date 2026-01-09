@@ -1,0 +1,221 @@
+---
+layout: layouts/docs.njk
+title: Deployment
+description: Build and deploy to GitHub Pages.
+order: 13
+prevPage:
+  url: /styling/
+  title: Styling
+nextPage:
+  url: /checklist/
+  title: Checklist
+---
+
+<h2 id="npm-scripts">npm Scripts</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Script</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>npm run dev</code></td>
+      <td>Development server with hot reload</td>
+    </tr>
+    <tr>
+      <td><code>npm run build</code></td>
+      <td>Production build (minified CSS)</td>
+    </tr>
+    <tr>
+      <td><code>npm run clean</code></td>
+      <td>Remove dist/ directory</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="github-pages">GitHub Pages</h2>
+
+<p>Create <code>.github/workflows/deploy.yml</code>:</p>
+
+<pre><code class="language-yaml">name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment</code></pre>
+
+<h2 id="path-prefix">Path Prefix</h2>
+
+<p>For project sites (username.github.io/repo-name), set path prefix in <code>eleventy.config.js</code>:</p>
+
+<pre><code class="language-javascript">return {
+  pathPrefix: process.env.GITHUB_ACTIONS ? "/repo-name/" : "/",
+};</code></pre>
+
+<h2 id="custom-domain">Custom Domain</h2>
+
+<ol>
+  <li>Add a <code>CNAME</code> file to <code>src/</code> with your domain</li>
+  <li>Add passthrough copy: <code>eleventyConfig.addPassthroughCopy("src/CNAME")</code></li>
+  <li>Configure DNS to point to GitHub Pages</li>
+</ol>
+
+<h2 id="build-verification">Build Verification</h2>
+
+<p>Before deploying, verify locally:</p>
+
+<pre><code class="language-bash"># Clean build
+npm run clean && npm run build
+
+# Serve the dist folder
+npx serve dist</code></pre>
+
+<h2 id="maintenance">Maintenance</h2>
+
+<p>Guidance for keeping your site up to date.</p>
+
+<h3 id="updating-dependencies">Updating Dependencies</h3>
+
+<p>Check for outdated packages:</p>
+
+<pre><code class="language-bash">npm outdated</code></pre>
+
+<p>Update to latest compatible versions:</p>
+
+<pre><code class="language-bash">npm update</code></pre>
+
+<p>For major version upgrades, update <code>package.json</code> manually and test thoroughly. Pay special attention to:</p>
+
+<ul>
+  <li><strong>Eleventy</strong> — Check the <a href="https://www.11ty.dev/blog/">release blog</a> for breaking changes</li>
+  <li><strong>Tailwind CSS</strong> — Review the <a href="https://tailwindcss.com/docs/upgrade-guide">upgrade guide</a> for migration steps</li>
+  <li><strong>Stimulus</strong> — Generally backwards compatible; check <a href="https://github.com/hotwired/stimulus/releases">release notes</a></li>
+</ul>
+
+<h3 id="content-updates">Content Updates</h3>
+
+<p>Content lives in <code>src/</code>. Common tasks:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Task</th>
+      <th>Where</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Edit page content</td>
+      <td><code>src/*.njk</code> or <code>src/**/*.md</code></td>
+    </tr>
+    <tr>
+      <td>Update site metadata</td>
+      <td><code>src/_data/site.json</code></td>
+    </tr>
+    <tr>
+      <td>Change navigation</td>
+      <td><code>src/_data/sections.json</code></td>
+    </tr>
+    <tr>
+      <td>Modify layouts</td>
+      <td><code>src/_includes/layouts/</code></td>
+    </tr>
+    <tr>
+      <td>Update partials</td>
+      <td><code>src/_includes/partials/</code></td>
+    </tr>
+    <tr>
+      <td>Adjust styling</td>
+      <td><code>src/assets/css/main.css</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="adding-pages">Adding Pages</h3>
+
+<ol>
+  <li>Create a new <code>.njk</code> or <code>.md</code> file in <code>src/</code></li>
+  <li>Add frontmatter with layout, title, and description</li>
+  <li>Add to <code>sections.json</code> if it should appear in navigation</li>
+  <li>Update prev/next links on adjacent pages if using chapter navigation</li>
+</ol>
+
+<h3 id="adding-controllers">Adding Controllers</h3>
+
+<ol>
+  <li>Create <code>src/assets/js/controllers/your_controller.js</code></li>
+  <li>Register in <code>application.js</code>:
+    <pre><code class="language-javascript">import YourController from "./controllers/your_controller.js";
+application.register("your", YourController);</code></pre>
+  </li>
+  <li>Use in templates: <code>data-controller="your"</code></li>
+</ol>
+
+<h3 id="troubleshooting">Troubleshooting</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Issue</th>
+      <th>Solution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CSS not updating</td>
+      <td>Run <code>npm run clean</code> and rebuild</td>
+    </tr>
+    <tr>
+      <td>Search not finding content</td>
+      <td>Rebuild to regenerate Pagefind index</td>
+    </tr>
+    <tr>
+      <td>Build fails</td>
+      <td>Check for Nunjucks syntax errors in templates</td>
+    </tr>
+    <tr>
+      <td>Controller not working</td>
+      <td>Verify registration in <code>application.js</code></td>
+    </tr>
+    <tr>
+      <td>Styles missing in production</td>
+      <td>Ensure classes are in <code>@source</code> paths in <code>main.css</code></td>
+    </tr>
+  </tbody>
+</table>

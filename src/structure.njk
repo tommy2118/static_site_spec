@@ -1,0 +1,131 @@
+---
+layout: layouts/docs.njk
+title: Structure
+description: The canonical directory structure for all projects.
+order: 3
+prevPage:
+  url: /stack/
+  title: Stack
+nextPage:
+  url: /files/
+  title: Files
+---
+
+<h2 id="directory-layout">Directory Layout</h2>
+
+<pre><code>project/
+├── src/                          # All source files
+│   ├── _data/                    # Global data files
+│   │   ├── site.json             # Site metadata
+│   │   └── navigation.json       # Navigation structure
+│   │
+│   ├── _includes/                # Reusable templates
+│   │   ├── layouts/              # Page layouts
+│   │   │   ├── base.njk          # Root layout (HTML shell)
+│   │   │   ├── page.njk          # Standard page layout
+│   │   │   └── docs.njk          # Documentation layout
+│   │   │
+│   │   └── partials/             # Includable components
+│   │       ├── head.njk          # &lt;head&gt; contents
+│   │       ├── nav.njk           # Navigation
+│   │       ├── footer.njk        # Footer
+│   │       └── scripts.njk       # JS includes
+│   │
+│   ├── assets/                   # Static assets
+│   │   ├── css/
+│   │   │   └── main.css          # Tailwind entry point
+│   │   │
+│   │   ├── js/
+│   │   │   ├── application.js    # Stimulus setup
+│   │   │   └── controllers/      # Stimulus controllers
+│   │   │
+│   │   ├── images/
+│   │   └── fonts/
+│   │
+│   └── index.njk                 # Homepage
+│
+├── dist/                         # Build output (gitignored)
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # GitHub Pages deployment
+│
+├── eleventy.config.js
+├── package.json
+└── README.md</code></pre>
+
+<h2 id="naming-conventions">Naming Conventions</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Convention</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Directories</td>
+      <td>lowercase, hyphens</td>
+      <td><code>_includes</code>, <code>my-section</code></td>
+    </tr>
+    <tr>
+      <td>Layouts</td>
+      <td>lowercase, <code>.njk</code></td>
+      <td><code>base.njk</code>, <code>page.njk</code></td>
+    </tr>
+    <tr>
+      <td>Data files</td>
+      <td>lowercase, <code>.json</code></td>
+      <td><code>site.json</code></td>
+    </tr>
+    <tr>
+      <td>Stimulus controllers</td>
+      <td><code>[name]_controller.js</code></td>
+      <td><code>toggle_controller.js</code></td>
+    </tr>
+    <tr>
+      <td>Images</td>
+      <td>lowercase, hyphens</td>
+      <td><code>hero-background.jpg</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="what-goes-where">What Goes Where</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Content Type</th>
+      <th>Location</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTML structure, meta tags</td>
+      <td><code>src/_includes/partials/head.njk</code></td>
+    </tr>
+    <tr>
+      <td>Navigation markup</td>
+      <td><code>src/_includes/partials/nav.njk</code></td>
+    </tr>
+    <tr>
+      <td>Site-wide data</td>
+      <td><code>src/_data/site.json</code></td>
+    </tr>
+    <tr>
+      <td>Tailwind config</td>
+      <td><code>src/assets/css/main.css</code></td>
+    </tr>
+    <tr>
+      <td>Stimulus setup</td>
+      <td><code>src/assets/js/application.js</code></td>
+    </tr>
+    <tr>
+      <td>Interactive behaviors</td>
+      <td><code>src/assets/js/controllers/*.js</code></td>
+    </tr>
+  </tbody>
+</table>

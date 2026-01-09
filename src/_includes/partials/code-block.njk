@@ -1,0 +1,21 @@
+{#
+  Code Block with filename header and copy button
+
+  Usage:
+    {% set codeContent %}
+    const foo = "bar";
+    {% endset %}
+    {% include "partials/code-block.njk" with { filename: "example.js", lang: "javascript", code: codeContent } %}
+#}
+<div class="code-block mb-6">
+  <div class="code-block-header">
+    <span class="font-mono text-xs">{{ filename }}</span>
+    <button data-controller="clipboard"
+            data-clipboard-text-value="{{ code | escape }}"
+            data-action="click->clipboard#copy"
+            class="copy-button">
+      <span data-clipboard-target="label">Copy</span>
+    </button>
+  </div>
+  <pre class="code-block-content"><code class="language-{{ lang or 'text' }}">{{ code | safe }}</code></pre>
+</div>

@@ -1,0 +1,29 @@
+{
+  "main": [
+    { "title": "Getting Started", "url": "/getting-started/", "order": 1 },
+    { "title": "Stack", "url": "/stack/", "order": 2 },
+    { "title": "Structure", "url": "/structure/", "order": 3 }
+  ],
+  "reference": [
+    { "title": "Files", "url": "/files/", "order": 10 },
+    { "title": "Content", "url": "/content/", "order": 11 },
+    { "title": "Styling", "url": "/styling/", "order": 12 },
+    { "title": "Deployment", "url": "/deployment/", "order": 13 },
+    { "title": "Checklist", "url": "/checklist/", "order": 14 }
+  ],
+  "controllers": [
+    { "title": "Overview", "url": "/controllers/", "order": 20 },
+    { "title": "toggle", "url": "/controllers/toggle/", "order": 21 },
+    { "title": "mobile_nav", "url": "/controllers/mobile-nav/", "order": 22 },
+    { "title": "animate", "url": "/controllers/animate/", "order": 23 },
+    { "title": "form", "url": "/controllers/form/", "order": 24 },
+    { "title": "reading_progress", "url": "/controllers/reading-progress/", "order": 25 },
+    { "title": "clipboard", "url": "/controllers/clipboard/", "order": 26 },
+    { "title": "toc", "url": "/controllers/toc/", "order": 27 },
+    { "title": "search", "url": "/controllers/search/", "order": 28 }
+  ],
+  "examples": [
+    { "title": "Examples", "url": "/examples/", "order": 30 },
+    { "title": "Changelog", "url": "/changelog/", "order": 31 }
+  ]
+}

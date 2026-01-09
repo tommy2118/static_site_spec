@@ -1,0 +1,129 @@
+---
+layout: layouts/controller-demo.njk
+title: clipboard
+description: Copy text to clipboard with visual feedback.
+order: 26
+prevPage:
+  url: /controllers/reading-progress/
+  title: reading_progress
+nextPage:
+  url: /controllers/toc/
+  title: toc
+demoContent: |
+  <div class="flex items-center gap-4">
+    <code class="bg-gray-100 px-3 py-2 rounded">npm install @11ty/eleventy</code>
+    <button data-controller="clipboard"
+            data-clipboard-text-value="npm install @11ty/eleventy"
+            data-action="click->clipboard#copy"
+            class="px-3 py-2 text-sm bg-gray-900 text-white rounded hover:bg-gray-800">
+      <span data-clipboard-target="label">Copy</span>
+    </button>
+  </div>
+---
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-html">&lt;button data-controller="clipboard"
+        data-clipboard-text-value="Text to copy"
+        data-action="click->clipboard#copy"&gt;
+  &lt;span data-clipboard-target="label"&gt;Copy&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+
+<h2 id="targets">Targets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>label</code></td>
+      <td>Text that changes to show feedback</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="values">Values</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Value</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>text</code></td>
+      <td>String</td>
+      <td>—</td>
+      <td>Text to copy</td>
+    </tr>
+    <tr>
+      <td><code>successText</code></td>
+      <td>String</td>
+      <td><code>"Copied!"</code></td>
+      <td>Success message</td>
+    </tr>
+    <tr>
+      <td><code>duration</code></td>
+      <td>Number</td>
+      <td><code>2000</code></td>
+      <td>Feedback duration (ms)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="source">Source</h2>
+
+<pre><code class="language-javascript">import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["label"];
+  static values = {
+    text: String,
+    successText: { type: String, default: "Copied!" },
+    duration: { type: Number, default: 2000 },
+  };
+
+  async copy() {
+    const text = this.textValue || this.element.textContent;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      this.showSuccess();
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  }
+
+  showSuccess() {
+    if (this.hasLabelTarget) {
+      const originalText = this.labelTarget.textContent;
+      this.labelTarget.textContent = this.successTextValue;
+
+      setTimeout(() => {
+        this.labelTarget.textContent = originalText;
+      }, this.durationValue);
+    }
+  }
+}</code></pre>
+
+<h2 id="code-blocks">Use with Code Blocks</h2>
+
+<pre><code class="language-html">&lt;div class="code-block"&gt;
+  &lt;div class="code-block-header"&gt;
+    &lt;span&gt;package.json&lt;/span&gt;
+    &lt;button data-controller="clipboard"
+            data-clipboard-text-value="npm install"
+            data-action="click->clipboard#copy"&gt;
+      &lt;span data-clipboard-target="label"&gt;Copy&lt;/span&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+  &lt;pre&gt;&lt;code&gt;npm install&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;</code></pre>
