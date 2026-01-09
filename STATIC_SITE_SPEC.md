@@ -1,6 +1,6 @@
 # Static Site Specification
 
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Last Updated:** 8 January 2026
 **Author:** Tommy A. Caruso Sr.
 
@@ -305,6 +305,25 @@ export default function (eleventyConfig) {
   // Current year (for copyright)
   eleventyConfig.addShortcode("year", () => `${new Date().getFullYear()}`);
 
+  // Key info callout box (for educational content)
+  // Usage: {% keyInfo "Title", "Content text here" %}
+  eleventyConfig.addShortcode("keyInfo", function (title, content) {
+    return `<div class="key-info">
+      <h4 class="font-semibold mb-2">${title}</h4>
+      <p class="text-gray-600">${content}</p>
+    </div>`;
+  });
+
+  // Section divider with decorative SVG
+  // Usage: {% sectionDivider %}
+  eleventyConfig.addShortcode("sectionDivider", function () {
+    return `<div class="section-divider h-16 w-full relative my-12 overflow-hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" class="absolute w-full h-full">
+        <path d="M1200 120L0 16.48V0h1200v120z" fill="currentColor" opacity="0.1"></path>
+      </svg>
+    </div>`;
+  });
+
   // ---------------------------------------------------------------------------
   // COLLECTIONS
   // ---------------------------------------------------------------------------
@@ -505,6 +524,62 @@ export default function (eleventyConfig) {
   .animate-delay-100 { transition-delay: 100ms; }
   .animate-delay-200 { transition-delay: 200ms; }
   .animate-delay-300 { transition-delay: 300ms; } */
+
+  /* Reading progress bar (for use with reading_progress_controller.js) */
+  /* .reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--color-primary, #9333EA);
+    z-index: 9999;
+    transition: width 0.1s;
+  } */
+}
+
+/* =============================================================================
+   PRINT STYLES
+
+   Essential for educational/reference content. Users print guides and worksheets.
+   ============================================================================= */
+
+@media print {
+  /* Hide interactive elements */
+  nav, footer, .share-buttons, .reading-progress,
+  button, [data-controller] { display: none !important; }
+
+  /* Reset backgrounds for print */
+  body, main, article {
+    background: white !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Convert dark backgrounds to light */
+  .bg-gray-800, .bg-gray-900 {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Show URLs for external links */
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Prevent page breaks inside content blocks */
+  h1, h2, h3, h4 { page-break-after: avoid; }
+  p, li, blockquote { orphans: 3; widows: 3; }
+
+  /* Add site attribution */
+  body::after {
+    content: "Printed from {{ site.url }}";
+    display: block;
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8em;
+    color: #666;
+  }
 }
 ```
 
@@ -807,6 +882,124 @@ export default class extends Controller {
 }
 ```
 
+#### reading_progress_controller.js (Reading Progress Bar)
+
+Shows a progress bar for long-form content. Only activates on pages with substantial content:
+
+`src/assets/js/controllers/reading_progress_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Reading Progress Controller
+ *
+ * Shows a progress bar at the top of the page indicating scroll position.
+ * Only activates on pages with >1000 characters of content.
+ *
+ * Usage:
+ *   <body data-controller="reading-progress">
+ *
+ * Requires CSS:
+ *   .reading-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--color-primary); z-index: 9999; transition: width 0.1s; }
+ */
+export default class extends Controller {
+  connect() {
+    if (this.shouldShow()) {
+      this.createProgressBar();
+      this.boundUpdateProgress = this.updateProgress.bind(this);
+      window.addEventListener("scroll", this.boundUpdateProgress);
+      this.updateProgress();
+    }
+  }
+
+  disconnect() {
+    if (this.boundUpdateProgress) {
+      window.removeEventListener("scroll", this.boundUpdateProgress);
+    }
+    if (this.progressBar) {
+      this.progressBar.remove();
+    }
+  }
+
+  shouldShow() {
+    const main = document.querySelector("main");
+    return main && main.textContent.length > 1000;
+  }
+
+  createProgressBar() {
+    this.progressBar = document.createElement("div");
+    this.progressBar.className = "reading-progress";
+    this.progressBar.style.width = "0%";
+    document.body.prepend(this.progressBar);
+  }
+
+  updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    this.progressBar.style.width = `${Math.min(progress, 100)}%`;
+  }
+}
+```
+
+#### clipboard_controller.js (Copy to Clipboard)
+
+Provides clipboard copy functionality with visual feedback:
+
+`src/assets/js/controllers/clipboard_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Clipboard Controller
+ *
+ * Copies URL or text to clipboard with visual feedback.
+ *
+ * Usage:
+ *   <button data-controller="clipboard"
+ *           data-clipboard-url-value="{{ page.url | url }}"
+ *           data-action="click->clipboard#copy">
+ *     <svg data-clipboard-target="icon"><!-- copy icon --></svg>
+ *     <span data-clipboard-target="text">Copy Link</span>
+ *   </button>
+ */
+export default class extends Controller {
+  static targets = ["icon", "text"];
+  static values = { url: String };
+
+  copy() {
+    const url = this.hasUrlValue ? this.urlValue : window.location.href;
+
+    navigator.clipboard.writeText(url).then(() => {
+      this.showFeedback();
+    });
+  }
+
+  showFeedback() {
+    const originalText = this.hasTextTarget ? this.textTarget.textContent : null;
+
+    if (this.hasTextTarget) {
+      this.textTarget.textContent = "Copied!";
+    }
+
+    if (this.hasIconTarget) {
+      this.iconTarget.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />`;
+    }
+
+    setTimeout(() => {
+      if (this.hasTextTarget && originalText) {
+        this.textTarget.textContent = originalText;
+      }
+      if (this.hasIconTarget) {
+        this.iconTarget.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" />`;
+      }
+    }, 2000);
+  }
+}
+```
+
 ### 4.7 src/_data/site.json
 
 ```json
@@ -960,14 +1153,23 @@ layout: layouts/base.njk
 {# Canonical URL #}
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 
+{# Dynamic OG Image Selection (customize paths per section) #}
+{%- if image -%}
+  {%- set ogImage = image -%}
+{%- elif "/portfolio/" in page.url -%}
+  {%- set ogImage = "/assets/images/og-portfolio.png" -%}
+{%- elif "/blog/" in page.url -%}
+  {%- set ogImage = "/assets/images/og-blog.png" -%}
+{%- else -%}
+  {%- set ogImage = "/assets/images/og-default.png" -%}
+{%- endif -%}
+
 {# Open Graph #}
 <meta property="og:title" content="{{ title | default(site.name) }}">
 <meta property="og:description" content="{{ description | default(site.description) }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
-{% if image %}
-<meta property="og:image" content="{{ site.url }}{{ image }}">
-{% endif %}
+<meta property="og:image" content="{{ site.url }}{{ ogImage }}">
 
 {# Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
@@ -1260,6 +1462,38 @@ category: Category Name     # e.g., "Furniture", "Cabinetry"
 image: /assets/images/project-hero.jpg
 imageAlt: Descriptive alt text for the image
 draft: false
+---
+```
+
+#### Educational/Long-Form Content Frontmatter
+
+For guides, tutorials, and reference content with table of contents:
+
+```yaml
+---
+layout: layouts/article.njk
+title: Article Title
+subtitle: Supporting subtitle for hero
+description: Meta description for SEO
+date: 2026-01-08
+
+# Quick summary for social sharing and scannable reference
+tldr: "One-sentence summary of key takeaway"
+
+# Table of contents (renders navigation sidebar)
+toc:
+  - id: introduction
+    title: Introduction
+  - id: understanding
+    title: Understanding the Concept
+  - id: practical-tips
+    title: Practical Tips
+
+# Related content navigation
+relatedArticles:
+  - title: Related Article
+    slug: related-article
+    description: Brief description
 ---
 ```
 
@@ -1738,10 +1972,33 @@ Sites built to this specification serve as reference implementations:
 
 1. **carpinte.ro** — Woodworking portfolio
 2. **nomad-theater-company** — Theater company website
+3. **thedbtresource.com** — Educational resource site (DBT/mental health)
 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.3.0 (8 January 2026)
+
+Learnings from thedbtresource.com implementation:
+
+**Added:**
+- `reading_progress_controller.js` — Reading progress bar with conditional activation (>1000 chars)
+- `clipboard_controller.js` — Copy to clipboard with visual feedback
+- Comprehensive print styles for educational/reference content
+- Dynamic OG image selection based on URL path
+- Educational content frontmatter: `tldr`, `toc`, `relatedArticles`
+- `keyInfo` shortcode for callout boxes
+- `sectionDivider` shortcode for visual section breaks
+- `.reading-progress` CSS utility
+
+**Pattern notes:**
+- Reading progress controller only activates on substantial content pages
+- Print styles essential for educational content users print for reference
+- TL;DR field enables quick social sharing summaries
+- ToC frontmatter enables automatic navigation generation
+
+---
 
 ### v1.2.0 (8 January 2026)
 

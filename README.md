@@ -37,10 +37,11 @@ Sites built to this specification:
 
 1. **carpinte.ro** — Woodworking portfolio
 2. **nomad-theater-company** — Theater company website
+3. **thedbtresource.com** — Educational resource site
 
 ## Version
 
-Current: **v1.2.0**
+Current: **v1.3.0**
 
 See Appendix D in the spec for changelog.
 
