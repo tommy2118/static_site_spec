@@ -2,7 +2,7 @@
 
 The canonical architecture and conventions for building modern static websites with Eleventy, Tailwind CSS 4, and Stimulus.
 
-**Live site:** [staticsitespec.dev](https://staticsitespec.dev) (or via GitHub Pages)
+**Live site:** [tommy2118.github.io/static_site_spec](https://tommy2118.github.io/static_site_spec)
 
 ## Quick Start
 
