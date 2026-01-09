@@ -138,7 +138,7 @@ export default function (eleventyConfig) {
   // ---------------------------------------------------------------------------
 
   return {
-    pathPrefix: "/",
+    pathPrefix: process.env.GITHUB_ACTIONS ? "/static_site_spec/" : "/",
     dir: {
       input: "src",
       output: "dist",
