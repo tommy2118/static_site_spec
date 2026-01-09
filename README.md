@@ -43,11 +43,12 @@ Sites built to this specification:
 
 - **[Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company)** — Theater company (v1.2)
 - **[The DBT Resource](https://thedbtresource.com)** — Educational resource (v1.3)
-- **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book
+- **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
+- **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
 
 ## Version
 
-Current: **v1.4.0**
+Current: **v1.5.0**
 
 ## License
 

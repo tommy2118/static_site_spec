@@ -1,6 +1,6 @@
 # Static Site Specification
 
-**Version:** 1.4.0
+**Version:** 1.5.0
 **Last Updated:** 9 January 2026
 **Author:** Tommy A. Caruso Sr.
 
@@ -1010,9 +1010,13 @@ export default class extends Controller {
   "description": "Site description for meta tags and SEO.",
   "url": "https://example.com",
   "email": "contact@example.com",
+  "phone": "(555) 123-4567",
+  "phoneRaw": "5551234567",
+  "license": "Optional license number",
   "author": {
     "name": "Author Name",
-    "email": "author@example.com"
+    "email": "author@example.com",
+    "credentials": "Optional credentials"
   },
   "language": "en",
   "theme": {
@@ -1026,6 +1030,12 @@ export default class extends Controller {
     "metric1": "100+",
     "metric2": "50",
     "metric3": "100%"
+  },
+  "analytics": {
+    "ga4": "G-XXXXXXXXXX"
+  },
+  "forms": {
+    "web3formsKey": "your-access-key"
   }
 }
 ```
@@ -1035,9 +1045,15 @@ export default class extends Controller {
 - `title`: Optional descriptor (e.g., "Woodworking & Craft")
 - `tagline`: Short phrase for hero sections (e.g., "Professional Theater, Anywhere")
 - `email`: Public contact email (displayed on site)
+- `phone`: Formatted phone number for display
+- `phoneRaw`: Unformatted number for `tel:` links
+- `license`: Professional license number (service businesses)
+- `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
 - `theme.color`: Browser theme color (address bar, PWA)
 - `social`: External profile links (add as needed)
 - `stats`: Displayable metrics for impact sections (keys are flexible)
+- `analytics.ga4`: Google Analytics 4 measurement ID
+- `forms.web3formsKey`: Web3Forms access key for contact forms
 
 ### 4.8 src/_data/navigation.json
 
@@ -1045,8 +1061,13 @@ export default class extends Controller {
 {
   "main": [
     { "label": "Home", "url": "/" },
-    { "label": "About", "url": "/about/" },
-    { "label": "Contact", "url": "/contact/" }
+    { "label": "About", "url": "/#about" },
+    { "label": "Services", "url": "/#services" },
+    { "label": "Contact", "url": "/#contact" }
+  ],
+  "services": [
+    { "label": "Service One", "url": "/service-one/" },
+    { "label": "Service Two", "url": "/service-two/" }
   ],
   "footer": [
     { "label": "Privacy", "url": "/privacy/" },
@@ -1054,6 +1075,11 @@ export default class extends Controller {
   ]
 }
 ```
+
+**Notes:**
+- Section anchor links (`/#about`) navigate to sections on the homepage
+- Categorized navigation allows different menus for header, footer, services dropdown
+- For single-page marketing sites, use anchor links to scroll to sections
 
 ### 4.9 src/_includes/layouts/base.njk
 
@@ -1189,9 +1215,16 @@ layout: layouts/base.njk
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet"> #}
 
+{# Font Awesome Icons - uncomment if needed #}
+{# <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"> #}
+
 {# Stylesheet #}
-<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | url }}">
 ```
+
+**Notes:**
+- Font Awesome via CDN provides icons: `<i class="fas fa-check"></i>`
+- Use `| url` filter on asset paths for correct pathPrefix handling
 
 ### 4.13 src/_includes/partials/nav.njk
 
@@ -1295,10 +1328,14 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
 }
 </script>
 
-<script type="module" src="/assets/js/application.js"></script>
+<script type="module" src="{{ '/assets/js/application.js' | url }}"></script>
 
-{# Analytics - uncomment and configure as needed #}
-{#
+{# Web3Forms for contact forms #}
+{% if site.forms.web3formsKey %}
+<script src="https://web3forms.com/client/script.js" async defer></script>
+{% endif %}
+
+{# Google Analytics 4 #}
 {% if site.analytics.ga4 %}
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.analytics.ga4 }}"></script>
 <script>
@@ -1308,8 +1345,12 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
   gtag('config', '{{ site.analytics.ga4 }}');
 </script>
 {% endif %}
-#}
 ```
+
+**Notes:**
+- Stimulus loads via CDN importmap (no npm package needed for production)
+- Web3Forms provides free contact form handling with hCaptcha spam protection
+- Analytics only loads when `site.analytics.ga4` is configured
 
 ### 4.16 src/index.njk
 
@@ -1330,7 +1371,31 @@ description: Welcome to the site.
 </section>
 ```
 
-### 4.17 .gitignore
+### 4.17 src/404.njk
+
+```nunjucks
+---
+layout: layouts/base.njk
+title: Page Not Found
+permalink: 404.html
+---
+
+<section class="container mx-auto px-4 py-24 text-center">
+  <h1 class="text-6xl font-bold text-gray-900 mb-4">404</h1>
+  <p class="text-xl text-gray-600 mb-8">
+    The page you're looking for doesn't exist.
+  </p>
+  <a href="/" class="inline-flex items-center px-6 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
+    Go Home
+  </a>
+</section>
+```
+
+**Notes:**
+- `permalink: 404.html` outputs the file as `404.html` (required for GitHub Pages)
+- GitHub Pages automatically serves this file for missing routes
+
+### 4.18 .gitignore
 
 ```
 # Dependencies
@@ -1362,7 +1427,7 @@ npm-debug.log*
 .cache/
 ```
 
-### 4.18 .github/workflows/deploy.yml
+### 4.19 .github/workflows/deploy.yml
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -1970,13 +2035,41 @@ Before marking a site "done," verify:
 
 Sites built to this specification serve as reference implementations:
 
-1. **carpinte.ro** — Woodworking portfolio
-2. **nomad-theater-company** — Theater company website
-3. **thedbtresource.com** — Educational resource site (DBT/mental health)
+1. **[Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company)** — Theater company website (v1.2)
+2. **[The DBT Resource](https://thedbtresource.com)** — Educational resource site (v1.3)
+3. **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
+4. **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.5.0 (9 January 2026)
+
+Learnings from lytle-landscape.com implementation:
+
+**Added:**
+- Extended `site.json` fields: `phone`, `phoneRaw`, `license`, `author.credentials`
+- `analytics.ga4` field for Google Analytics 4 integration
+- `forms.web3formsKey` field for Web3Forms contact form handling
+- Font Awesome CDN integration pattern in head.njk
+- Section anchor navigation pattern (`/#about`, `/#services`)
+- 404 page with `permalink: 404.html` for GitHub Pages
+- Categorized navigation structure (main, services, footer)
+
+**Changed:**
+- Enabled analytics in scripts.njk (previously commented out)
+- Added Web3Forms script loading in scripts.njk
+- Updated navigation.json to show anchor link pattern
+- Added `| url` filter to asset paths for pathPrefix support
+
+**Pattern notes:**
+- `phoneRaw` enables proper `tel:` links while `phone` is for display
+- Web3Forms provides free contact form handling with hCaptcha spam protection
+- Section anchors enable single-page marketing site navigation
+- Categorized navigation supports service-based businesses with subpages
+
+---
 
 ### v1.4.0 (9 January 2026)
 

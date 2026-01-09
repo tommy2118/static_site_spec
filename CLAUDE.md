@@ -98,14 +98,15 @@ When including Nunjucks syntax in code examples, wrap in raw tags:
 
 ## Content Source
 
-All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.4.0).
+All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.5.0).
 
 ## Example Sites
 
 Sites built to this specification:
-- nomad-theater-company (v1.2)
-- thedbtresource.com (v1.3)
-- engineers-manual (search + TOC patterns)
+- [Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company) (v1.2)
+- [The DBT Resource](https://thedbtresource.com) (v1.3)
+- [Engineer's Manual](https://engineers-manual.com) (v1.4)
+- [Lytle Landscape](https://lytle-landscape.com) (v1.5)
 
 ## Deployment
 
