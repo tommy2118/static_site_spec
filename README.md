@@ -41,9 +41,9 @@ This repository contains:
 
 Sites built to this specification:
 
-- **nomad-theater-company** — Theater company (v1.2)
-- **thedbtresource.com** — Educational resource (v1.3)
-- **engineers-manual** — Technical reference book
+- **[Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company)** — Theater company (v1.2)
+- **[The DBT Resource](https://thedbtresource.com)** — Educational resource (v1.3)
+- **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book
 
 ## Version
 
