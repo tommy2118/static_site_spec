@@ -1,6 +1,6 @@
 # Static Site Specification
 
-**Version:** 1.5.0
+**Version:** 1.6.0
 **Last Updated:** 9 January 2026
 **Author:** Tommy A. Caruso Sr.
 
@@ -535,6 +535,58 @@ export default function (eleventyConfig) {
     z-index: 9999;
     transition: width 0.1s;
   } */
+
+  /* Scale utility for hover effects */
+  .scale-102 { transform: scale(1.02); }
+
+  /* Text gradient utility */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--color-primary, #9333EA), var(--color-secondary, #3B82F6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* =============================================================================
+   MOTION ANIMATIONS
+   ============================================================================= */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
+.animate-slide-in-up { animation: slide-in-up 0.6s ease-out forwards; }
+.animate-slide-in-left { animation: slide-in-left 0.6s ease-out forwards; }
+
+/* =============================================================================
+   ACCESSIBILITY: REDUCED MOTION
+
+   Respects user preference for reduced motion. Critical for users with
+   vestibular disorders or motion sensitivity.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* =============================================================================
@@ -1000,6 +1052,80 @@ export default class extends Controller {
 }
 ```
 
+#### analytics_controller.js (GA4 Event Tracking)
+
+Centralized Google Analytics 4 event tracking for phone, email, and SMS clicks:
+
+`src/assets/js/controllers/analytics_controller.js`:
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Analytics Controller
+ *
+ * Auto-tracks clicks on tel:, mailto:, and sms: links.
+ * Also supports custom event tracking via data attributes.
+ *
+ * Usage (auto-tracking):
+ *   <body data-controller="analytics">
+ *     <a href="tel:5551234567">Call Us</a>  <!-- auto-tracked -->
+ *     <a href="mailto:info@example.com">Email</a>  <!-- auto-tracked -->
+ *   </body>
+ *
+ * Usage (custom events):
+ *   <button data-action="click->analytics#trackEvent"
+ *           data-analytics-event-param="cta_click"
+ *           data-analytics-category-param="engagement"
+ *           data-analytics-label-param="hero_button">
+ *     Get Started
+ *   </button>
+ */
+export default class extends Controller {
+  connect() {
+    this.element.addEventListener("click", this.handleClick.bind(this));
+  }
+
+  disconnect() {
+    this.element.removeEventListener("click", this.handleClick.bind(this));
+  }
+
+  handleClick(event) {
+    const link = event.target.closest("a[href]");
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+
+    if (href.startsWith("tel:")) {
+      this.track("phone_click", "contact", href.replace("tel:", ""));
+    } else if (href.startsWith("mailto:")) {
+      this.track("email_click", "contact", href.replace("mailto:", ""));
+    } else if (href.startsWith("sms:")) {
+      this.track("sms_click", "contact", href.replace("sms:", ""));
+    }
+  }
+
+  trackEvent(event) {
+    const { eventParam, categoryParam, labelParam } = event.params;
+    this.track(eventParam, categoryParam, labelParam);
+  }
+
+  track(eventName, category, label) {
+    if (typeof gtag === "function") {
+      gtag("event", eventName, {
+        event_category: category,
+        event_label: label,
+      });
+    }
+  }
+}
+```
+
+**Notes:**
+- Attach to `<body>` element for site-wide tracking
+- Gracefully degrades if gtag not loaded
+- Register as: `application.register("analytics", AnalyticsController)`
+
 ### 4.7 src/_data/site.json
 
 ```json
@@ -1063,6 +1189,7 @@ export default class extends Controller {
     { "label": "Home", "url": "/" },
     { "label": "About", "url": "/#about" },
     { "label": "Services", "url": "/#services" },
+    { "label": "Tools", "url": "/tools/", "highlight": true },
     { "label": "Contact", "url": "/#contact" }
   ],
   "services": [
@@ -1080,8 +1207,52 @@ export default class extends Controller {
 - Section anchor links (`/#about`) navigate to sections on the homepage
 - Categorized navigation allows different menus for header, footer, services dropdown
 - For single-page marketing sites, use anchor links to scroll to sections
+- `highlight: true` marks items for special styling (e.g., CTA buttons)
 
-### 4.9 src/_includes/layouts/base.njk
+### 4.9 src/_data/forms.json (Optional)
+
+Centralized form field options for dropdowns and multi-selects:
+
+```json
+{
+  "industries": [
+    { "value": "hvac", "label": "HVAC" },
+    { "value": "roofing", "label": "Roofing" },
+    { "value": "solar", "label": "Solar" },
+    { "value": "plumbing", "label": "Plumbing" },
+    { "value": "electrical", "label": "Electrical" },
+    { "value": "other", "label": "Other" }
+  ],
+  "companySizes": [
+    { "value": "1-5", "label": "1-5 employees" },
+    { "value": "6-20", "label": "6-20 employees" },
+    { "value": "21-50", "label": "21-50 employees" },
+    { "value": "51+", "label": "51+ employees" }
+  ],
+  "referralSources": [
+    { "value": "search", "label": "Search Engine" },
+    { "value": "social", "label": "Social Media" },
+    { "value": "referral", "label": "Referral" },
+    { "value": "other", "label": "Other" }
+  ]
+}
+```
+
+**Usage in templates:**
+```nunjucks
+<select name="industry">
+  {% for option in forms.industries %}
+  <option value="{{ option.value }}">{{ option.label }}</option>
+  {% endfor %}
+</select>
+```
+
+**Notes:**
+- Centralizes dropdown options for consistency across forms
+- Makes options easy to update without editing multiple templates
+- Use when forms share common select fields
+
+### 4.10 src/_includes/layouts/base.njk
 
 ```nunjucks
 <!DOCTYPE html>
@@ -1089,7 +1260,7 @@ export default class extends Controller {
   <head>
     {% include "partials/head.njk" %}
   </head>
-  <body class="min-h-screen flex flex-col">
+  <body class="min-h-screen flex flex-col {{ bodyClass }}">
     {% include "partials/nav.njk" %}
 
     <main class="flex-1">
@@ -1102,7 +1273,10 @@ export default class extends Controller {
 </html>
 ```
 
-### 4.10 src/_includes/layouts/page.njk
+**Notes:**
+- `bodyClass` frontmatter allows per-page body styling (e.g., `bodyClass: "bg-gray-900 text-white"` for dark pages)
+
+### 4.11 src/_includes/layouts/page.njk
 
 ```nunjucks
 ---
@@ -1120,7 +1294,7 @@ layout: layouts/base.njk
 </div>
 ```
 
-### 4.11 src/_includes/layouts/project.njk (Portfolio Sites)
+### 4.12 src/_includes/layouts/project.njk (Portfolio Sites)
 
 ```nunjucks
 ---
@@ -1167,7 +1341,7 @@ layout: layouts/base.njk
 </article>
 ```
 
-### 4.12 src/_includes/partials/head.njk
+### 4.13 src/_includes/partials/head.njk
 
 ```nunjucks
 <meta charset="UTF-8">
@@ -1190,17 +1364,17 @@ layout: layouts/base.njk
   {%- set ogImage = "/assets/images/og-default.png" -%}
 {%- endif -%}
 
-{# Open Graph #}
-<meta property="og:title" content="{{ title | default(site.name) }}">
-<meta property="og:description" content="{{ description | default(site.description) }}">
+{# Open Graph - og_title/og_description allow explicit overrides #}
+<meta property="og:title" content="{{ og_title | default(title) | default(site.name) }}">
+<meta property="og:description" content="{{ og_description | default(description) | default(site.description) }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
 <meta property="og:image" content="{{ site.url }}{{ ogImage }}">
 
 {# Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ title | default(site.name) }}">
-<meta name="twitter:description" content="{{ description | default(site.description) }}">
+<meta name="twitter:title" content="{{ og_title | default(title) | default(site.name) }}">
+<meta name="twitter:description" content="{{ og_description | default(description) | default(site.description) }}">
 
 {# Theme Color #}
 <meta name="theme-color" content="{{ site.theme.color | default('#ffffff') }}">
@@ -1225,8 +1399,9 @@ layout: layouts/base.njk
 **Notes:**
 - Font Awesome via CDN provides icons: `<i class="fas fa-check"></i>`
 - Use `| url` filter on asset paths for correct pathPrefix handling
+- `og_title` and `og_description` frontmatter allow explicit Open Graph overrides separate from page title/description
 
-### 4.13 src/_includes/partials/nav.njk
+### 4.14 src/_includes/partials/nav.njk
 
 For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to `<main>` in base.njk.
 
@@ -1288,7 +1463,7 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
 </header>
 ```
 
-### 4.14 src/_includes/partials/footer.njk
+### 4.15 src/_includes/partials/footer.njk
 
 ```nunjucks
 <footer class="bg-gray-50 border-t border-gray-200">
@@ -1316,7 +1491,7 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
 </footer>
 ```
 
-### 4.15 src/_includes/partials/scripts.njk
+### 4.16 src/_includes/partials/scripts.njk
 
 ```nunjucks
 {# Stimulus via importmap (no build step required) #}
@@ -1352,7 +1527,7 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
 - Web3Forms provides free contact form handling with hCaptcha spam protection
 - Analytics only loads when `site.analytics.ga4` is configured
 
-### 4.16 src/index.njk
+### 4.17 src/index.njk
 
 ```nunjucks
 ---
@@ -1371,7 +1546,7 @@ description: Welcome to the site.
 </section>
 ```
 
-### 4.17 src/404.njk
+### 4.18 src/404.njk
 
 ```nunjucks
 ---
@@ -1395,7 +1570,7 @@ permalink: 404.html
 - `permalink: 404.html` outputs the file as `404.html` (required for GitHub Pages)
 - GitHub Pages automatically serves this file for missing routes
 
-### 4.18 .gitignore
+### 4.19 .gitignore
 
 ```
 # Dependencies
@@ -1427,7 +1602,7 @@ npm-debug.log*
 .cache/
 ```
 
-### 4.19 .github/workflows/deploy.yml
+### 4.20 .github/workflows/deploy.yml
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -2039,10 +2214,37 @@ Sites built to this specification serve as reference implementations:
 2. **[The DBT Resource](https://thedbtresource.com)** — Educational resource site (v1.3)
 3. **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
 4. **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
+5. **[VetMGMedia](https://vetmgmedia.com)** — Veteran-owned agency building contractor financing sites (v1.6)
 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.6.0 (9 January 2026)
+
+Learnings from vetmgmedia.com implementation:
+
+**Added:**
+- `analytics_controller.js` — GA4 event tracking for tel/mailto/sms link clicks
+- `forms.json` data file pattern for centralized form dropdown options
+- `og_title` and `og_description` frontmatter for explicit Open Graph overrides
+- `bodyClass` frontmatter for per-page body styling
+- `highlight: true` navigation field for call-to-action styling
+- CSS utilities: `scale-102`, `gradient-text`
+- Animation keyframes: `fade-in`, `slide-in-up`, `slide-in-left`
+- `prefers-reduced-motion` accessibility media query
+
+**Changed:**
+- head.njk now cascades og_title → title → site.name for OG meta
+- base.njk body tag supports dynamic bodyClass from frontmatter
+
+**Pattern notes:**
+- Analytics controller enables conversion tracking without inline onclick handlers
+- forms.json centralizes dropdown options for consistency across multiple forms
+- Reduced motion support is critical accessibility for vestibular disorders
+- OG overrides allow marketing-optimized social shares distinct from page title
+
+---
 
 ### v1.5.0 (9 January 2026)
 

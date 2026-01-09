@@ -8,6 +8,29 @@ prevPage:
   title: Examples
 ---
 
+<h2 id="v1-6-0">Version 1.6.0</h2>
+
+<p><strong>Released:</strong> January 9, 2026<br>
+<strong>Focus:</strong> Analytics and accessibility patterns</p>
+
+<h3>Added</h3>
+<ul>
+  <li><code>analytics</code> controller for GA4 event tracking (tel/mailto/sms)</li>
+  <li><code>forms.json</code> data file for centralized dropdown options</li>
+  <li><code>og_title</code> and <code>og_description</code> frontmatter overrides</li>
+  <li><code>bodyClass</code> frontmatter for per-page body styling</li>
+  <li><code>highlight: true</code> navigation field for CTA styling</li>
+  <li>CSS utilities: <code>scale-102</code>, <code>gradient-text</code></li>
+  <li>Animation keyframes: <code>fade-in</code>, <code>slide-in-up</code>, <code>slide-in-left</code></li>
+  <li><code>prefers-reduced-motion</code> accessibility media query</li>
+</ul>
+
+<h3>Changed</h3>
+<ul>
+  <li>head.njk cascades og_title → title → site.name for OG meta</li>
+  <li>base.njk body tag supports dynamic bodyClass</li>
+</ul>
+
 <h2 id="v1-5-0">Version 1.5.0</h2>
 
 <p><strong>Released:</strong> January 9, 2026<br>

@@ -3,6 +3,6 @@
   "description": "The canonical architecture and conventions for building modern static websites with Eleventy, Tailwind CSS 4, and Stimulus.",
   "author": "Tommy A. Caruso Sr.",
   "url": "https://tommy2118.github.io/static_site_spec",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "github": "https://github.com/tommy2118/static_site_spec"
 }
