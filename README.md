@@ -21,8 +21,8 @@ The spec covers:
 - Directory structure and naming conventions
 - Complete file templates (config, layouts, partials, CSS, JS)
 - Content authoring patterns (frontmatter, collections, Markdown)
-- Stimulus controller conventions
-- Tailwind 4 theme configuration
+- Stimulus controllers (toggle, animate, mobile-nav, form)
+- Tailwind 4 theme configuration with `@theme` and `@source`
 - Build and deployment (GitHub Pages)
 - Documentation requirements
 - Quality checklist
@@ -36,10 +36,11 @@ Reference [STATIC_SITE_SPEC.md](./STATIC_SITE_SPEC.md) when building a new stati
 Sites built to this specification:
 
 1. **carpinte.ro** — Woodworking portfolio
+2. **nomad-theater-company** — Theater company website
 
 ## Version
 
-Current: **v1.1.0**
+Current: **v1.2.0**
 
 See Appendix D in the spec for changelog.
 
