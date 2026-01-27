@@ -2021,6 +2021,7 @@ Every project must include a CLAUDE.md for AI pairing context:
 
 - Eleventy 3.1.x (static site generator)
 - Tailwind CSS 4.1.x (CSS-first configuration)
+- DaisyUI 5.x (component library)
 - Stimulus 3.2.x (JavaScript behavior)
 - Nunjucks (templating)
 

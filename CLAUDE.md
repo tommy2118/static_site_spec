@@ -8,6 +8,7 @@ This is the Static Site Spec documentation site — a meta site built to showcas
 |------------|---------|---------|
 | Eleventy | 3.1.x | Static site generator |
 | Tailwind CSS | 4.1.x | Utility-first CSS (CSS-first config) |
+| DaisyUI | 5.x | Component library |
 | Stimulus | 3.2.x | JavaScript behavior |
 | Pagefind | 1.x | Client-side search |
 
