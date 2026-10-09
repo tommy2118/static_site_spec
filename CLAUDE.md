@@ -1,6 +1,6 @@
 # Claude Code Instructions
 
-This is the Static Site Spec documentation site — a meta site built to showcase and document the Static Site Specification v1.7.0.
+This is the Static Site Spec documentation site — a meta site built to showcase and document the Static Site Specification v1.7.1.
 
 ## Stack
 
@@ -117,7 +117,7 @@ When including Nunjucks syntax in code examples, wrap in raw tags:
 
 ## Content Source
 
-All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.7.0). `src/scene-sites.md` is generated from Section 11; regenerate it when Section 11 changes.
+All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.7.1). `src/scene-sites.md` is generated from Section 11; regenerate it when Section 11 changes.
 
 ## Example Sites
 

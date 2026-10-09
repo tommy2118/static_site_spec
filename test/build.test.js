@@ -7,7 +7,10 @@
 //   src/index.njk              one chapter per entry; the words live here
 import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import Eleventy from "@11ty/eleventy";
+
+const site = JSON.parse(fs.readFileSync("src/_data/site.json", "utf8"));
 
 let home;
 
@@ -51,7 +54,7 @@ describe("the homepage", () => {
 
   test("closes on a title block with the current version", () => {
     assert.match(home, /class="title-block"/);
-    assert.match(home, /1\.7\.0/);
+    assert.ok(home.includes(site.version), `title block shows ${site.version}`);
   });
 
   test("keeps the drawing's fallback hidden until the drawing fails", () => {

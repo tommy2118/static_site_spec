@@ -228,8 +228,11 @@ export default class extends Controller {
 
 ## Fallback and Motion
 
-- Every scene page includes a hidden fallback element (`data-<scene>-target="fallback"`) with a static image or a short note. The scene controller reveals it when the renderer throws. Parts that do not draw (calls, captions, accent colors) may keep running behind the fallback.
-- All text lives in the HTML, never drawn into the canvas. The page must read completely with the scene missing.
+- Every scene has a fallback, in one of two forms:
+  - **A hidden fallback element** (`data-<scene>-target="fallback"`) with a static image or a short note. The scene controller reveals it when the renderer throws. Use this when the scene fills the screen behind the page, as an orrery or a stage does.
+  - **The plain page.** The page's own markup is the fallback, styled to read on its own, and the scene opts in: the controller adds a class (`has-scene`) only once the renderer has started, and CSS hands the drawing over to the canvas under that class. Use this when the scene draws behind specific elements, as slips behind lines of text do. A visitor without the scene sees the page exactly as written, with nothing to reveal.
+- In either form, parts that do not draw (calls, captions, accent colors) may keep running without the scene.
+- All text lives in the HTML. The canvas may repeat the page's words as labels, at a size that scales with the drawing, but it never carries words the page does not have. The page must read completely with the scene missing.
 - The canvas is decorative: `aria-hidden="true"`.
 - Under `prefers-reduced-motion: reduce`, nothing moves on its own: freeze or slow the clock, stop auto-rotation, and keep the reduced-motion CSS from Section 4.3. Direct input (dragging, pointing) still works.
 
@@ -264,7 +267,8 @@ Chapters check on `requestAnimationFrame` and pages scroll smoothly, and both pa
 In addition to Section 10:
 
 - [ ] `npm test` passes
-- [ ] With WebGL disabled, the fallback shows and every word of content is still on the page
+- [ ] With WebGL disabled, the fallback shows (or the plain page stays plain) and every word of content is still on the page
+- [ ] Every word the canvas draws is also in the HTML
 - [ ] With reduced motion on, nothing animates on its own
 - [ ] Scrolling activates exactly one chapter at a time, including sections taller than the viewport
 - [ ] `grep -rnE '\bwindow\.|\bdocument\.|performance\.now|requestAnimationFrame\(' src/assets/js/lib/` finds nothing
