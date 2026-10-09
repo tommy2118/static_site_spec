@@ -37,4 +37,10 @@ application.register("toggle", ToggleController);
 import AnimateController from "./controllers/animate_controller.js";
 application.register("animate", AnimateController);
 
+import ChapterController from "./controllers/chapter_controller.js";
+application.register("chapter", ChapterController);
+
+import BlueprintController from "./controllers/blueprint_controller.js";
+application.register("blueprint", BlueprintController);
+
 export { application };

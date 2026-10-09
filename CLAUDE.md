@@ -18,6 +18,7 @@ This is the Static Site Spec documentation site — a meta site built to showcas
 npm run dev      # Development server at localhost:8080
 npm run build    # Production build + Pagefind index
 npm run clean    # Remove dist/
+npm test         # node:test specs for lib/ and a full build test
 ```
 
 ## Project Structure
@@ -61,6 +62,23 @@ src/
 | clipboard | clipboard_controller.js | Copy code button |
 | toggle | toggle_controller.js | Show/hide content |
 | animate | animate_controller.js | Scroll animations |
+| chapter | chapter_controller.js | Announces a homepage section's pose (spec Section 11) |
+| blueprint | blueprint_controller.js | The homepage scene's one joint: loop, globals, plotter |
+
+## The Blueprint Homepage
+
+The homepage is a scene site (spec Section 11): a live technical drawing of
+an exploded static site, steered by its sections. Each section is a
+`chapter` announcing a pose from `src/_data/blueprint.json`; the `blueprint`
+controller eases the drawing toward it. `src/assets/js/lib/` holds the parts:
+`sheet.js` (the drawing as data), `pose.js` and `flow.js` (advanced by dt),
+`iso.js` (projection), and `plotter.js` (the WebGL2 renderer, which throws
+without WebGL2 so the ruled-paper fallback shows). Paper and ink colors come
+from `--sheet-paper` and `--sheet-ink`: whiteprint in light mode, cyanotype in
+dark. Every word lives in `src/index.njk`; canvas labels only repeat a few.
+
+Chapters check on `requestAnimationFrame` and pause in a hidden tab; probe
+with `scrollIntoView({ behavior: "instant" })`.
 
 ## Key Patterns
 

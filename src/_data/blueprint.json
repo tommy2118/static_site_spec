@@ -1,0 +1,11 @@
+{
+  "chapters": [
+    { "id": "cover",       "pose": { "explode": 0,    "yaw": 0.785, "tree": 0,   "flow": 0,   "page": 1,   "live": 0, "wiring": 0, "zoom": 1 } },
+    { "id": "stack",       "pose": { "explode": 1,    "yaw": 0.785, "tree": 0,   "flow": 0,   "page": 0.3, "live": 0, "wiring": 0, "zoom": 0.92 } },
+    { "id": "structure",   "pose": { "explode": 0.35, "yaw": 0.62,  "tree": 1,   "flow": 0,   "page": 0.5, "live": 0, "wiring": 0, "zoom": 0.85 } },
+    { "id": "build",       "pose": { "explode": 0.5,  "yaw": 0.62,  "tree": 1,   "flow": 1,   "page": 0.7, "live": 0, "wiring": 0, "zoom": 0.85 } },
+    { "id": "controllers", "pose": { "explode": 0,    "yaw": 0.785, "tree": 0,   "flow": 0,   "page": 1,   "live": 1, "wiring": 0, "zoom": 1.2 } },
+    { "id": "scene-sites", "pose": { "explode": 0.6,  "yaw": 1.45,  "tree": 0,   "flow": 0,   "page": 0.5, "live": 0, "wiring": 1, "zoom": 0.85 } },
+    { "id": "title-block", "pose": { "explode": 0.15, "yaw": 0.62,  "tree": 1,   "flow": 1,   "page": 1,   "live": 0, "wiring": 0, "zoom": 0.7 } }
+  ]
+}

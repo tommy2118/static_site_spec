@@ -2,145 +2,106 @@
 layout: layouts/base.njk
 title: Static Site Spec
 description: The canonical architecture and conventions for building modern static websites.
+bodyClass: is-blueprint
 ---
+{# Each section is a chapter: when it reaches mid-screen it announces the pose
+   it wants the drawing in. The words all live here; the drawing only repeats
+   a few of them as labels. #}
+{% macro chapter(id) -%}
+{%- for c in blueprint.chapters %}{% if c.id == id -%}
+data-controller="chapter" data-chapter-scene-value="blueprint" data-chapter-look-value="{{ c | dump }}"
+{%- endif %}{% endfor -%}
+{%- endmacro %}
 
-{# Hero Section #}
-<section class="bg-gray-50 border-b border-gray-200">
-  <div class="container mx-auto px-4 py-16 max-w-4xl text-center">
-    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-      Static Site Spec
-    </h1>
-    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-      The canonical architecture and conventions for building modern static websites with Eleventy, Tailwind CSS 4, and Stimulus.
-    </p>
-    <div class="flex flex-wrap justify-center gap-4">
-      <a href="{{ '/getting-started/' | url }}" class="inline-flex items-center px-6 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
-        Get Started
-      </a>
-      <a href="{{ site.github }}" class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-        View on GitHub
-      </a>
-    </div>
-    <p class="mt-6 text-sm text-gray-500">
-      Version {{ site.version }}
-    </p>
-  </div>
-</section>
+{% macro summary(url) -%}
+{%- for p in collections.all %}{% if p.url == url %}{{ p.data.description }}{% endif %}{% endfor -%}
+{%- endmacro %}
 
-{# Stack Overview #}
-<section class="py-16">
-  <div class="container mx-auto px-4 max-w-4xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">The Stack</h2>
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="text-center" data-controller="animate" data-animate-delay-value="0">
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-          </svg>
-        </div>
-        <h3 class="font-semibold text-gray-900 mb-2">Eleventy 3.1.x</h3>
-        <p class="text-gray-600 text-sm">Static site generator with Nunjucks templating</p>
-      </div>
-      <div class="text-center" data-controller="animate" data-animate-delay-value="100">
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
-          </svg>
-        </div>
-        <h3 class="font-semibold text-gray-900 mb-2">Tailwind CSS 4.1.x</h3>
-        <p class="text-gray-600 text-sm">Utility-first CSS with CSS-first configuration</p>
-      </div>
-      <div class="text-center" data-controller="animate" data-animate-delay-value="200">
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
-        <h3 class="font-semibold text-gray-900 mb-2">Stimulus 3.2.x</h3>
-        <p class="text-gray-600 text-sm">Lightweight JavaScript behavior framework</p>
-      </div>
-    </div>
-  </div>
-</section>
+<div class="blueprint" data-controller="blueprint">
+  <canvas class="sheet" data-blueprint-target="canvas" aria-hidden="true"></canvas>
+  <div class="sheet-fallback" hidden data-blueprint-target="fallback"></div>
 
-{# Quick Links #}
-<section class="py-16 bg-gray-50 border-t border-gray-200">
-  <div class="container mx-auto px-4 max-w-4xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Documentation</h2>
-    <div class="grid md:grid-cols-2 gap-6">
-      {% for item in sections.main %}
-      <a href="{{ item.url | url }}" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">{{ item.title }}</h3>
-        <p class="text-gray-600 text-sm">Learn the fundamentals</p>
-      </a>
-      {% endfor %}
-      {% for item in sections.reference %}
-      <a href="{{ item.url | url }}" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">{{ item.title }}</h3>
-        <p class="text-gray-600 text-sm">Reference documentation</p>
-      </a>
-      {% endfor %}
+  <section class="plate plate--cover" {{ chapter("cover") }}>
+    <p class="plate-kicker">Sheet 1 of 1 <span aria-hidden="true">&middot;</span> Revision {{ site.version }}</p>
+    <h1 class="plate-title">Static Site Spec</h1>
+    <p class="plate-lede">The canonical architecture and conventions for building static websites with Eleventy, Tailwind CSS 4, and Stimulus. Prescriptive, so every site built to it has the same body plan.</p>
+    <div class="plate-actions">
+      <a class="plate-button plate-button--solid" href="{{ '/getting-started/' | url }}">Get started</a>
+      <a class="plate-button" href="{{ site.github }}">View on GitHub</a>
     </div>
-  </div>
-</section>
+    <p class="plate-hint">Scroll to take it apart</p>
+  </section>
 
-{# Controllers Section #}
-<section class="py-16">
-  <div class="container mx-auto px-4 max-w-4xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4 text-center">Stimulus Controllers</h2>
-    <p class="text-gray-600 text-center mb-8 max-w-2xl mx-auto">
-      Pre-built, production-ready controllers for common UI patterns.
-    </p>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {% for item in sections.controllers %}
-      {% if item.title != "Overview" %}
-      <a href="{{ item.url | url }}" class="block p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-        <code class="text-sm font-mono text-gray-700">{{ item.title }}</code>
-      </a>
-      {% endif %}
-      {% endfor %}
-    </div>
-    <div class="text-center mt-8">
-      <a href="{{ '/controllers/' | url }}" class="text-blue-600 hover:text-blue-800 font-medium">
-        View all controllers &rarr;
-      </a>
-    </div>
-  </div>
-</section>
+  <section class="plate" aria-labelledby="stack-title" {{ chapter("stack") }}>
+    <p class="plate-kicker">Detail A <span aria-hidden="true">&middot;</span> The stack</p>
+    <h2 class="plate-heading" id="stack-title">Three layers, one job each</h2>
+    <dl class="plate-parts">
+      <div><dt>Eleventy 3.1</dt><dd>Builds HTML from Nunjucks templates and data files.</dd></div>
+      <div><dt>Tailwind CSS 4.1</dt><dd>Styles from design tokens, configured in one CSS file.</dd></div>
+      <div><dt>Stimulus 3.2</dt><dd>Behavior attached to the HTML that is already there.</dd></div>
+    </dl>
+    <a class="plate-link" href="{{ '/stack/' | url }}">Why these three</a>
+  </section>
 
-{# Example Sites #}
-<section class="py-16 bg-gray-50 border-t border-gray-200">
-  <div class="container mx-auto px-4 max-w-4xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4 text-center">Built with the Spec</h2>
-    <p class="text-gray-600 text-center mb-8">
-      Real-world sites built following this specification.
-    </p>
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <a href="https://tommy2118.github.io/nomad-theater-company" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">Nomad Theater Company</h3>
-        <p class="text-gray-600 text-sm mb-2">Theater company website</p>
-        <span class="text-xs text-gray-500">v1.2 patterns</span>
-      </a>
-      <a href="https://thedbtresource.com" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">The DBT Resource</h3>
-        <p class="text-gray-600 text-sm mb-2">Educational resource site</p>
-        <span class="text-xs text-gray-500">v1.3 patterns</span>
-      </a>
-      <a href="https://engineers-manual.com" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">Engineer's Manual</h3>
-        <p class="text-gray-600 text-sm mb-2">Technical reference book</p>
-        <span class="text-xs text-gray-500">v1.4 patterns</span>
-      </a>
-      <a href="https://lytle-landscape.com" class="block p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
-        <h3 class="font-semibold text-gray-900 mb-2">Lytle Landscape</h3>
-        <p class="text-gray-600 text-sm mb-2">Landscape design business</p>
-        <span class="text-xs text-gray-500">v1.5 patterns</span>
-      </a>
+  <section class="plate" aria-labelledby="structure-title" {{ chapter("structure") }}>
+    <p class="plate-kicker">Detail B <span aria-hidden="true">&middot;</span> Structure</p>
+    <h2 class="plate-heading" id="structure-title">A place for everything</h2>
+    <p>Every site has the same tree: data in <code>_data/</code>, layouts and partials in <code>_includes/</code>, styles and controllers in <code>assets/</code>, and pages at the top. Know one site built to the spec and you know where everything is in the next.</p>
+    <a class="plate-link" href="{{ '/structure/' | url }}">The directory structure</a>
+  </section>
+
+  <section class="plate" aria-labelledby="build-title" {{ chapter("build") }}>
+    <p class="plate-kicker">Detail C <span aria-hidden="true">&middot;</span> Build</p>
+    <h2 class="plate-heading" id="build-title">One command builds it</h2>
+    <p><code>npm run build</code> reads the data, renders the templates, compiles Tailwind in a single before hook, and writes <code>dist/</code>. GitHub Actions runs the same command on every push and publishes the result.</p>
+    <a class="plate-link" href="{{ '/deployment/' | url }}">Build and deploy</a>
+  </section>
+
+  <section class="plate" aria-labelledby="controllers-title" {{ chapter("controllers") }}>
+    <p class="plate-kicker">Detail D <span aria-hidden="true">&middot;</span> Controllers</p>
+    <h2 class="plate-heading" id="controllers-title">Behavior, wired in the markup</h2>
+    <p>Small Stimulus controllers, attached with data attributes, each doing one thing. Menus, scroll reveals, forms, search, and copy buttons, ready to drop in.</p>
+    <ul class="plate-controllers">
+      {%- for item in sections.controllers %}{% if item.title != "Overview" %}
+      <li><a href="{{ item.url | url }}"><code>{{ item.title }}</code></a></li>
+      {%- endif %}{% endfor %}
+    </ul>
+    <a class="plate-link" href="{{ '/controllers/' | url }}">All controllers</a>
+  </section>
+
+  <section class="plate" aria-labelledby="scene-title" {{ chapter("scene-sites") }}>
+    <p class="plate-kicker">Detail E <span aria-hidden="true">&middot;</span> New in {{ site.version }}</p>
+    <h2 class="plate-heading" id="scene-title">This page is a scene site</h2>
+    <p>Each section you scroll past is a chapter that announces the pose it wants. One controller owns the loop and hands the time to small modules that know nothing about the page. The drawing behind these words is the system they describe.</p>
+    <a class="plate-link" href="{{ '/scene-sites/' | url }}">Scene sites</a>
+  </section>
+
+  <section class="plate plate--title" aria-labelledby="title-block-title" {{ chapter("title-block") }}>
+    <div class="title-block">
+      <h2 class="title-block-name" id="title-block-title">Static Site Specification</h2>
+      <dl class="title-block-cells">
+        <div><dt>Revision</dt><dd>{{ site.version }}</dd></div>
+        <div><dt>Date</dt><dd>{{ site.released }}</dd></div>
+        <div><dt>Drawn</dt><dd>{{ site.author }}</dd></div>
+        <div><dt>Sheet</dt><dd>1 of 1</dd></div>
+      </dl>
     </div>
-    <div class="text-center mt-8">
-      <a href="{{ '/examples/' | url }}" class="text-blue-600 hover:text-blue-800 font-medium">
-        View all examples &rarr;
-      </a>
-    </div>
-  </div>
-</section>
+
+    <h3 class="plate-subhead">Contents</h3>
+    <ul class="plate-contents">
+      {%- for item in sections.main.concat(sections.reference) %}
+      <li><a href="{{ item.url | url }}"><strong>{{ item.title }}</strong><span>{{ summary(item.url) }}</span></a></li>
+      {%- endfor %}
+    </ul>
+
+    <h3 class="plate-subhead">Built to the spec</h3>
+    <ul class="plate-examples">
+      <li><a href="https://dannycaruso.link"><strong>Danny Caruso</strong><span>Actor, a scene site run by lighting cues &middot; v1.7</span></a></li>
+      <li><a href="https://vetmgmedia.com"><strong>VetMGMedia</strong><span>Contractor financing sites &middot; v1.6</span></a></li>
+      <li><a href="https://lytle-landscape.com"><strong>Lytle Landscape</strong><span>Landscape design &middot; v1.5</span></a></li>
+      <li><a href="https://engineers-manual.com"><strong>Engineer's Manual</strong><span>Technical reference &middot; v1.4</span></a></li>
+      <li><a href="https://thedbtresource.com"><strong>The DBT Resource</strong><span>Educational resource &middot; v1.3</span></a></li>
+      <li><a href="https://tommy2118.github.io/nomad-theater-company"><strong>Nomad Theater Company</strong><span>Theater company &middot; v1.2</span></a></li>
+    </ul>
+  </section>
+</div>

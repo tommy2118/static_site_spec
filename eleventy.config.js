@@ -15,6 +15,7 @@ export default function (eleventyConfig) {
   eleventyConfig.ignores.add("STATIC_SITE_SPEC.md");
   eleventyConfig.ignores.add("node_modules/**");
   eleventyConfig.ignores.add("dist/**");
+  eleventyConfig.ignores.add("test/**");
 
   // ---------------------------------------------------------------------------
   // PASSTHROUGH COPIES

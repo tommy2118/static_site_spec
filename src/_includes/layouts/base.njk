@@ -3,7 +3,7 @@
 <head>
   {% include "partials/head.njk" %}
 </head>
-<body class="bg-white text-gray-900 min-h-screen flex flex-col" data-controller="mobile-nav">
+<body class="bg-white text-gray-900 min-h-screen flex flex-col {{ bodyClass }}" data-controller="mobile-nav">
   {# Reading Progress Bar #}
   <div data-controller="reading-progress" class="reading-progress"></div>
 
