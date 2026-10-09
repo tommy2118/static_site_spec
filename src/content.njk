@@ -54,6 +54,31 @@ image: /path/to/og.jpg     # Optional
   </tbody>
 </table>
 
+<h2 id="facts-not-yet-known">Facts Not Yet Known</h2>
+
+<p>When a site is built before every fact is in hand (a role, a year, a contact email), the gap is marked in the data, never guessed. Keep the facts in one JavaScript data file and mark each gap with <code>blank()</code>:</p>
+
+<pre><code class="language-javascript">// src/_data/person.js
+const blank = (hint) =&gt; ({ kind: "blank", hint });
+
+export default {
+  name: "Danny Caruso",
+  contact: blank("public email"),
+  credits: [{ show: "Bury the Dead", role: blank("role"), year: 2021 }],
+};</code></pre>
+
+<p>Render every fact through one macro, so a gap shows as a marked gap:</p>
+
+<pre><code class="language-nunjucks">{% raw %}{# src/_includes/macros/fact.njk #}
+{% macro fact(value) -%}
+{%- if value.kind == "blank" -%}&lt;span class="blank"&gt;{{ value.hint }}&lt;/span&gt;{%- else -%}{{ value }}{%- endif -%}
+{%- endmacro %}
+
+{% from "macros/fact.njk" import fact %}
+&lt;p&gt;{{ fact(person.contact) }}&lt;/p&gt;{% endraw %}</code></pre>
+
+<p>Style <code>.blank</code> as a dashed tag with <code>::after { content: " to come"; }</code>. The macro escapes facts like any other output, and filling a gap is a one-line change to the data file.</p>
+
 <h2 id="markdown">Markdown Content</h2>
 
 <p>Markdown files are processed with Nunjucks, so you can use template features:</p>

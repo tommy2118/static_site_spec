@@ -3,7 +3,11 @@
    ============================================================================= */
 
 @import "tailwindcss";
-@plugin "daisyui";
+/* Light only: the site's own colors are light, so following a dark system
+   preference turned inline code into dark text on a dark chip. */
+@plugin "daisyui" {
+  themes: light --default;
+}
 
 /* =============================================================================
    SOURCE PATHS
@@ -45,6 +49,12 @@
 
   .prose h3 {
     @apply text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+  }
+
+  /* Markdown pages link their headings; they should read like the rest. */
+  .prose .header-anchor {
+    color: inherit;
+    text-decoration: none;
   }
 
   .prose p {

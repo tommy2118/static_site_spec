@@ -8,6 +8,30 @@ prevPage:
   title: Examples
 ---
 
+<h2 id="v1-7-0">Version 1.7.0</h2>
+
+<p><strong>Released:</strong> October 9, 2026<br>
+<strong>Focus:</strong> Scene sites</p>
+
+<p>Learnings from three scene sites (Harmonices Mundi, Center of Percussion, Metes &amp; Bounds) that had converged on the same shape inside this stack without the spec describing it, proved by porting a fourth, <a href="https://dannycaruso.link">dannycaruso.link</a>, onto it.</p>
+
+<h3>Added</h3>
+<ul>
+  <li><a href="{{ '/scene-sites/' | url }}">Scene Sites</a>: an optional layer for sites with a live rendered scene steered by scrolling</li>
+  <li><code>chapter</code> controller: announces its look on <code>&lt;scene&gt;:chapter</code> when it straddles mid-screen, and <code>&lt;scene&gt;:approach</code> as it comes up from below</li>
+  <li>The scene controller pattern: one joint owns the frame loop and every browser global</li>
+  <li><code>src/assets/js/lib/</code> for scene logic, renderer, and domain math</li>
+  <li>Renderer contract: WebGL2 renderers throw when unavailable, and the page shows a static fallback</li>
+  <li><code>test</code> script (<code>node --test</code>) and <code>test/</code> directory for scene sites</li>
+  <li><a href="{{ '/content/#facts-not-yet-known' | url }}">Facts Not Yet Known</a>: <code>blank()</code> markers and a <code>fact</code> macro</li>
+</ul>
+
+<h3>Changed</h3>
+<ul>
+  <li>Directory structure lists <code>lib/</code> and <code>test/</code></li>
+  <li>npm scripts list <code>test</code> for scene sites</li>
+</ul>
+
 <h2 id="v1-6-0">Version 1.6.0</h2>
 
 <p><strong>Released:</strong> January 9, 2026<br>

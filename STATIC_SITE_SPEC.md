@@ -1,7 +1,7 @@
 # Static Site Specification
 
-**Version:** 1.6.0
-**Last Updated:** 9 January 2026
+**Version:** 1.7.0
+**Last Updated:** 9 October 2026
 **Author:** Tommy A. Caruso Sr.
 
 ---
@@ -102,8 +102,9 @@ project/
 │   │   │
 │   │   ├── js/
 │   │   │   ├── application.js    # Stimulus application setup
-│   │   │   └── controllers/      # Stimulus controllers
-│   │   │       └── .gitkeep      # Placeholder until controllers added
+│   │   │   ├── controllers/      # Stimulus controllers
+│   │   │   │   └── .gitkeep      # Placeholder until controllers added
+│   │   │   └── lib/              # Scene sites only (Section 11)
 │   │   │
 │   │   ├── images/               # Image assets
 │   │   │   └── .gitkeep
@@ -123,6 +124,8 @@ project/
 │   ├── index.njk                 # Homepage
 │   ├── about.njk                 # About page
 │   └── contact.njk               # Contact page
+│
+├── test/                         # Scene sites only: node:test specs (Section 11)
 │
 ├── dist/                         # Build output (gitignored)
 │
@@ -166,6 +169,8 @@ project/
 | Tailwind config + custom styles | `src/assets/css/main.css` |
 | Stimulus setup | `src/assets/js/application.js` |
 | Interactive behaviors | `src/assets/js/controllers/*.js` |
+| Scene logic, renderer, domain math | `src/assets/js/lib/*.js` (Section 11) |
+| Tests for `lib/` modules | `test/*.test.js` (Section 11) |
 | Standalone pages | `src/*.njk` (index, about, contact) |
 | Section landing pages | `src/[section]/index.njk` |
 | Blog posts / articles | `src/content/posts/*.md` |
@@ -204,7 +209,7 @@ project/
 
 **Notes:**
 - `type: "module"` is required for ESM
-- Only three scripts: `dev`, `build`, `clean`
+- Only three scripts: `dev`, `build`, `clean`. Scene sites add a fourth, `test` (Section 11)
 - All style/JS processing happens through Eleventy hooks
 - No `start` script (use `dev`)
 - No separate CSS watch script
@@ -1737,6 +1742,35 @@ relatedArticles:
 ---
 ```
 
+### Facts Not Yet Known
+
+When a site is built before every fact is in hand (a role, a year, a contact email), the gap is marked in the data, never guessed. Keep the facts in one JavaScript data file and mark each gap with `blank()`:
+
+```javascript
+// src/_data/person.js
+const blank = (hint) => ({ kind: "blank", hint });
+
+export default {
+  name: "Danny Caruso",
+  contact: blank("public email"),
+  credits: [{ show: "Bury the Dead", role: blank("role"), year: 2021 }],
+};
+```
+
+Render every fact through one macro, so a gap shows as a marked gap:
+
+```nunjucks
+{# src/_includes/macros/fact.njk #}
+{% macro fact(value) -%}
+{%- if value.kind == "blank" -%}<span class="blank">{{ value.hint }}</span>{%- else -%}{{ value }}{%- endif -%}
+{%- endmacro %}
+
+{% from "macros/fact.njk" import fact %}
+<p>{{ fact(person.contact) }}</p>
+```
+
+Style `.blank` as a dashed tag with `::after { content: " to come"; }`. The macro escapes facts like any other output, and filling a gap is a one-line change to the data file.
+
 ### Markdown Conventions
 
 1. **One H1 per page** — The `title` frontmatter becomes the H1. Don't add another.
@@ -1908,6 +1942,7 @@ Prefer utilities. Use `@layer components` sparingly:
 | `dev` | `eleventy --serve --watch` | Local development |
 | `build` | `NODE_ENV=production eleventy` | Production build |
 | `clean` | `rm -rf dist` | Remove build artifacts |
+| `test` | `node --test` | Scene sites only: run `lib/` specs (Section 11) |
 
 ### Development Workflow
 
@@ -2135,6 +2170,268 @@ Before marking a site "done," verify:
 
 ---
 
+## 11. SCENE SITES (OPTIONAL)
+
+### When This Applies
+
+A scene site has a live rendered scene, usually a WebGL canvas, that the page's content steers as the reader scrolls. Brochure sites skip this section. For scene sites, everything in Sections 1 through 10 still applies; this section adds one layer on top.
+
+### The Body Plan
+
+```
+section[data-controller="chapter"]   (one per scrolling section)
+        │
+        │  window CustomEvents, detail = the look it wants:
+        │    "<scene>:chapter"   it straddles mid-screen (exactly one at a time)
+        │    "<scene>:approach"  it is coming up from below
+        ▼
+<scene>_controller.js                (the one joint)
+        ├── lib/clock.js             time, advanced by dt
+        ├── lib/<model>.js           pure domain math
+        └── lib/renderer.js          WebGL2: draws what it is handed
+```
+
+| Part | Owns | Refuses to know |
+|------|------|-----------------|
+| Chapter controller | When its section is the active one, and announcing the look it wants | Who is listening, or how the look is drawn |
+| Scene controller | The frame loop, pointer input, and every browser global (`requestAnimationFrame`, `performance.now`, `matchMedia`, `devicePixelRatio`, `AudioContext`) | Which section is on screen; it only hears announcements |
+| `lib/` domain modules | The math of the subject | The DOM, Stimulus, the clock, the page's content |
+| `lib/renderer.js` | Drawing one frame from the state it is handed | Where that state came from, or what time it is |
+
+The scene controller is the only file that knows all the parts exist. It hands browser globals to `lib/` modules; `lib/` modules never reach for them. Anything that changes over time (a camera easing to a pose, lights fading to a look) advances by the `dt` the loop passes in, never by reading a clock itself.
+
+### Directory Additions
+
+```
+src/assets/js/
+├── application.js
+├── controllers/
+│   ├── <scene>_controller.js     # The one joint: loop, pointer, globals
+│   └── chapter_controller.js     # Announces each section's look
+└── lib/
+    ├── clock.js                  # Scene time and rate
+    ├── <model>.js                # Pure domain math (tested)
+    └── renderer.js               # WebGL2; throws if unavailable
+test/
+└── <model>.test.js               # node:test, no browser
+```
+
+`lib/` is copied with the rest of `src/assets/js` by the existing passthrough (Section 4.2). No configuration changes.
+
+### package.json
+
+Scene sites add a fourth script:
+
+```json
+"scripts": {
+  "dev": "eleventy --serve --watch",
+  "build": "NODE_ENV=production eleventy",
+  "clean": "rm -rf dist",
+  "test": "node --test"
+}
+```
+
+`node --test` is Node's built-in runner: no dependency, and it finds `test/*.test.js` on its own. A module under test must not touch browser globals when it is imported.
+
+### chapter_controller.js
+
+The same file serves every scene site; the look is data in the markup.
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+
+/**
+ * Chapter Controller
+ *
+ * A scrolling section of a scene site. When it straddles the vertical middle
+ * of the viewport it announces the look it wants on a window event. It
+ * refuses to know who is listening.
+ *
+ * The midpoint test, rather than an intersection ratio, stays correct for
+ * sections taller than the viewport and keeps exactly one chapter active.
+ * A section coming up from below also announces that it is approaching,
+ * for scenes that warn before they change.
+ *
+ *   <section data-controller="chapter"
+ *            data-chapter-scene-value="stage"
+ *            data-chapter-look-value='{"label": "lights 10", "look": {...}}'>
+ *
+ * announces "stage:chapter" when it is active and "stage:approach" as it
+ * comes up.
+ */
+export default class extends Controller {
+  static values = { scene: String, look: Object };
+
+  connect() {
+    this.active = false;
+    this.approaching = false;
+    this.pending = false;
+    this.onScroll = () => this.schedule();
+    window.addEventListener("scroll", this.onScroll, { passive: true });
+    window.addEventListener("resize", this.onScroll, { passive: true });
+    this.schedule();
+  }
+
+  disconnect() {
+    window.removeEventListener("scroll", this.onScroll);
+    window.removeEventListener("resize", this.onScroll);
+  }
+
+  schedule() {
+    if (this.pending) return;
+    this.pending = true;
+    requestAnimationFrame(() => {
+      this.pending = false;
+      this.check();
+    });
+  }
+
+  check() {
+    const rect = this.element.getBoundingClientRect();
+    const mid = window.innerHeight / 2;
+    const contains = rect.top <= mid && rect.bottom > mid;
+    const approaching = !contains && rect.top > mid && rect.top < window.innerHeight * 0.92;
+
+    if (approaching !== this.approaching) {
+      this.approaching = approaching;
+      if (approaching) this.announce("approach");
+    }
+    if (contains === this.active) return;
+    this.active = contains;
+    this.element.classList.toggle("is-active", contains);
+    if (contains) this.announce("chapter");
+  }
+
+  announce(kind) {
+    window.dispatchEvent(new CustomEvent(`${this.sceneValue}:${kind}`, { detail: this.lookValue }));
+  }
+}
+```
+
+The `is-active` class lets CSS stage the section's own content (titles flying in, captions fading up) without another controller. Scenes that do not warn before a change simply do not listen for `approach`.
+
+### The Scene Controller
+
+One per site, named for the scene (`orrery_controller.js`, `sword_controller.js`). Its element must contain or precede the chapters, so its listener is attached before the first announcement.
+
+```javascript
+import { Controller } from "@hotwired/stimulus";
+import Clock from "../lib/clock.js";
+import Renderer from "../lib/renderer.js";
+
+/**
+ * Scene Controller
+ *
+ * The one joint. Owns the frame loop and the browser globals, and passes
+ * messages between the lib modules. Chapters reach it only through the
+ * "<identifier>:chapter" event, so an orrery controller hears "orrery:chapter".
+ */
+export default class extends Controller {
+  static targets = ["canvas", "fallback"];
+
+  connect() {
+    this.still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    try {
+      this.renderer = new Renderer(this.canvasTarget);
+    } catch (error) {
+      console.warn("Scene could not start:", error);
+      this.fallbackTarget.hidden = false;
+      return;
+    }
+
+    this.clock = new Clock({ rate: this.still ? 0 : 1 });
+    this.onChapter = (event) => this.applyChapter(event.detail);
+    window.addEventListener(`${this.identifier}:chapter`, this.onChapter);
+
+    this.lastFrame = performance.now();
+    this.frame = (now) => this.step(now);
+    this.raf = requestAnimationFrame(this.frame);
+  }
+
+  disconnect() {
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener(`${this.identifier}:chapter`, this.onChapter);
+  }
+
+  applyChapter(look) {
+    this.look = look;
+  }
+
+  step(now) {
+    const dt = Math.max(0, Math.min(0.1, (now - this.lastFrame) / 1000));
+    this.lastFrame = now;
+    this.renderer.render({
+      time: this.clock.tick(dt),
+      dt,
+      look: this.look,
+      dpr: Math.min(2, window.devicePixelRatio || 1),
+    });
+    this.raf = requestAnimationFrame(this.frame);
+  }
+}
+```
+
+**Notes:**
+- `dt` is clamped to 0.1s so a backgrounded tab does not jump the scene when it returns
+- Device pixel ratio is capped at 2
+- Pointer input binds here and is handed to `lib/` modules as plain numbers: on the canvas when the scene is dragged, on the window when the canvas sits behind the page
+
+### Renderer Contract
+
+`lib/renderer.js` exports a class that:
+
+1. Takes the canvas in its constructor and calls `getContext("webgl2")`
+2. Throws `new Error("WebGL2 is not available")` when that returns null, and throws the info log when a shader fails to compile or link
+3. Draws one frame per `render(state)` call from what it is handed, sizing the drawing buffer from `canvas.clientWidth × dpr`
+4. Never reads the clock, schedules frames, or queries the DOM beyond its own canvas
+
+### Fallback and Motion
+
+- Every scene page includes a hidden fallback element (`data-<scene>-target="fallback"`) with a static image or a short note. The scene controller reveals it when the renderer throws. Parts that do not draw (calls, captions, accent colors) may keep running behind the fallback.
+- All text lives in the HTML, never drawn into the canvas. The page must read completely with the scene missing.
+- The canvas is decorative: `aria-hidden="true"`.
+- Under `prefers-reduced-motion: reduce`, nothing moves on its own: freeze or slow the clock, stop auto-rotation, and keep the reduced-motion CSS from Section 4.3. Direct input (dragging, pointing) still works.
+
+### Testing
+
+Test the `lib/` domain modules with `node:test`, importing them straight from `src/`:
+
+```javascript
+import { test, describe } from "node:test";
+import assert from "node:assert/strict";
+
+import { solveKepler } from "../src/assets/js/lib/ephemeris.js";
+
+describe("solveKepler", () => {
+  test("satisfies M = E - e sin E across the eccentricities we use", () => {
+    for (const e of [0, 0.0167, 0.2056, 0.6]) {
+      for (let M = -Math.PI; M <= Math.PI; M += 0.37) {
+        const E = solveKepler(M, e);
+        assert.ok(Math.abs(E - e * Math.sin(E) - M) < 1e-9);
+      }
+    }
+  });
+});
+```
+
+Domain modules are pure, so assert their results. The renderer and the controllers are checked in the browser against the checklist below, not unit tested. A build test that runs Eleventy's programmatic API (`new Eleventy("src", "dist", { configPath: "eleventy.config.js" }).toJSON()`) and reads the page is a cheap outer loop: it proves the data reaches the chapters without a browser.
+
+Chapters check on `requestAnimationFrame` and pages scroll smoothly, and both pause in a hidden tab. When probing a scene from a script, scroll with `behavior: "instant"`.
+
+### Scene Checklist
+
+In addition to Section 10:
+
+- [ ] `npm test` passes
+- [ ] With WebGL disabled, the fallback shows and every word of content is still on the page
+- [ ] With reduced motion on, nothing animates on its own
+- [ ] Scrolling activates exactly one chapter at a time, including sections taller than the viewport
+- [ ] `grep -rnE '\bwindow\.|\bdocument\.|performance\.now|requestAnimationFrame\(' src/assets/js/lib/` finds nothing
+- [ ] The frame loop stops when the scene controller disconnects
+
+---
+
 ## APPENDIX A: Troubleshooting
 
 ### CSS Not Updating
@@ -2216,10 +2513,38 @@ Sites built to this specification serve as reference implementations:
 3. **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
 4. **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
 5. **[VetMGMedia](https://vetmgmedia.com)** — Veteran-owned agency building contractor financing sites (v1.6)
+6. **[Danny Caruso](https://dannycaruso.link)** — Actor portfolio, a scene site run by lighting cues (v1.7)
+
+Section 11 was drawn from three scene sites built in this stack before the spec described them: Harmonices Mundi (a WebGL orrery), Center of Percussion (longsword physics), and Metes & Bounds (a survey plat). They are not public.
 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.7.0 (9 October 2026)
+
+Learnings from three scene sites (Harmonices Mundi, Center of Percussion, Metes & Bounds) that had converged on the same shape inside this stack without the spec describing it, proved by porting a fourth (dannycaruso.link) onto it:
+
+**Added:**
+- Section 11, Scene Sites: an optional layer for sites with a live rendered scene steered by scrolling
+- `chapter_controller.js`: a reusable section controller that announces its look on `<scene>:chapter`, using a midpoint test so exactly one chapter is active, and `<scene>:approach` as it comes up from below
+- The scene controller pattern: one joint owns the frame loop and every browser global, and hands them to `lib/` modules
+- `src/assets/js/lib/` for scene logic, renderer, and domain math
+- Renderer contract: WebGL2 renderers throw when unavailable, and the scene controller reveals a static fallback
+- `test` script (`node --test`) and `test/` directory for scene sites
+- Scene checklist, including a grep that keeps browser globals out of `lib/`
+- Facts Not Yet Known (Section 5): `blank()` markers in a JavaScript data file and a `fact` macro that renders gaps as marked gaps
+
+**Changed:**
+- Section 3 directory tree and What Goes Where table list `lib/` and `test/`
+- Section 4.1 and Section 8 list the `test` script for scene sites
+
+**Pattern notes:**
+- Chapters announce and refuse to know who listens, so the scene can change without touching the content
+- `lib/` modules stay free of the DOM and the clock, which is what makes them testable without a browser
+- All text stays in the HTML, so a scene site reads completely when WebGL is missing
+
+---
 
 ### v1.6.0 (9 January 2026)
 

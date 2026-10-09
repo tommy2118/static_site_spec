@@ -9,7 +9,8 @@
     { "title": "Content", "url": "/content/", "order": 11 },
     { "title": "Styling", "url": "/styling/", "order": 12 },
     { "title": "Deployment", "url": "/deployment/", "order": 13 },
-    { "title": "Checklist", "url": "/checklist/", "order": 14 }
+    { "title": "Checklist", "url": "/checklist/", "order": 14 },
+    { "title": "Scene Sites", "url": "/scene-sites/", "order": 15 }
   ],
   "controllers": [
     { "title": "Overview", "url": "/controllers/", "order": 20 },

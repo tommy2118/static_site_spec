@@ -1,6 +1,6 @@
 # Claude Code Instructions
 
-This is the Static Site Spec documentation site — a meta site built to showcase and document the Static Site Specification v1.6.0.
+This is the Static Site Spec documentation site — a meta site built to showcase and document the Static Site Specification v1.7.0.
 
 ## Stack
 
@@ -99,7 +99,7 @@ When including Nunjucks syntax in code examples, wrap in raw tags:
 
 ## Content Source
 
-All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.5.0).
+All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.7.0). `src/scene-sites.md` is generated from Section 11; regenerate it when Section 11 changes.
 
 ## Example Sites
 
@@ -108,6 +108,8 @@ Sites built to this specification:
 - [The DBT Resource](https://thedbtresource.com) (v1.3)
 - [Engineer's Manual](https://engineers-manual.com) (v1.4)
 - [Lytle Landscape](https://lytle-landscape.com) (v1.5)
+- [VetMGMedia](https://vetmgmedia.com) (v1.6)
+- [Danny Caruso](https://dannycaruso.link) (v1.7)
 
 ## Deployment
 
