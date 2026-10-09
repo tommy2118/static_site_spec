@@ -1,6 +1,6 @@
 # Claude Code Instructions
 
-This is the Static Site Spec documentation site — a meta site built to showcase and document the Static Site Specification v1.7.1.
+This is the Static Site Spec documentation site: a meta site built to showcase and document the Static Site Specification v1.7.1.
 
 ## Stack
 
