@@ -1,0 +1,6 @@
+{# Every page opens like a drawing sheet: its number and revision, then the title. #}
+<header class="sheet-header">
+  <p class="sheet-header-kicker">{% if order %}Sheet {{ order }} <span aria-hidden="true">&middot;</span> {% endif %}Revision {{ site.version }}</p>
+  <h1 class="sheet-header-title">{{ title }}</h1>
+  {% if description %}<p class="sheet-header-lede">{{ description }}</p>{% endif %}
+</header>

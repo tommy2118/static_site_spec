@@ -3,8 +3,9 @@
    ============================================================================= */
 
 @import "tailwindcss";
-/* Light only: the site's own colors are light, so following a dark system
-   preference turned inline code into dark text on a dark chip. */
+/* DaisyUI stays on its light theme and out of the way: the site's colors
+   come from the sheet tokens below, in light and dark. Following a dark
+   system preference once turned inline code into dark text on a dark chip. */
 @plugin "daisyui" {
   themes: light --default;
 }
@@ -26,6 +27,44 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-drafting: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+
+  /* Colors: one paper and one ink per theme, mixed for everything else. */
+  --color-paper: var(--sheet-paper);
+  --color-ink: var(--sheet-ink);
+  --color-ink-soft: color-mix(in srgb, var(--sheet-ink) 78%, var(--sheet-paper));
+  --color-ink-faint: color-mix(in srgb, var(--sheet-ink) 58%, var(--sheet-paper));
+  --color-rule: color-mix(in srgb, var(--sheet-ink) 20%, var(--sheet-paper));
+  --color-wash: color-mix(in srgb, var(--sheet-ink) 6%, var(--sheet-paper));
+  --color-code: var(--sheet-code);
+  --color-code-ink: var(--sheet-code-ink);
+}
+
+/* Whiteprint by default, cyanotype when the system prefers dark. */
+:root {
+  --sheet-paper: #f1eee4;
+  --sheet-ink: #1f4f8f;
+  --sheet-code: #15335f;
+  --sheet-code-ink: #e6edf8;
+  color-scheme: light;
+}
+
+/* DaisyUI styles a few things itself (prose code among them); its base
+   colors follow the sheet so nothing it draws strays from the paper. */
+:root {
+  --color-base-100: var(--sheet-paper);
+  --color-base-200: color-mix(in srgb, var(--sheet-ink) 6%, var(--sheet-paper));
+  --color-base-300: color-mix(in srgb, var(--sheet-ink) 14%, var(--sheet-paper));
+  --color-base-content: var(--sheet-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sheet-paper: #12376a;
+    --sheet-ink: #e4edfb;
+    --sheet-code: #0b2448;
+    --sheet-code-ink: #dce6f6;
+    color-scheme: dark;
+  }
 }
 
 /* =============================================================================
@@ -45,11 +84,14 @@
 
   /* Prose typography defaults */
   .prose h2 {
-    @apply text-2xl font-bold mt-10 mb-4 scroll-mt-20;
+    @apply text-2xl font-semibold mt-12 mb-4 pb-2 border-b border-rule scroll-mt-20;
+    font-family: var(--font-drafting);
+    letter-spacing: 0.01em;
   }
 
   .prose h3 {
     @apply text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+    font-family: var(--font-drafting);
   }
 
   /* Markdown pages link their headings; they should read like the rest. */
@@ -63,7 +105,7 @@
   }
 
   .prose a {
-    @apply text-blue-600 hover:text-blue-800 underline;
+    @apply text-ink underline decoration-ink-faint underline-offset-2 hover:decoration-ink;
   }
 
   .prose ul,
@@ -76,19 +118,19 @@
   }
 
   .prose code {
-    @apply font-mono text-sm bg-gray-100 px-1.5 py-0.5 rounded;
+    @apply font-mono text-sm bg-wash border border-rule px-1.5 py-0.5 rounded-sm;
   }
 
   .prose pre {
-    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6;
+    @apply bg-code text-code-ink p-4 rounded-sm overflow-x-auto mb-6;
   }
 
   .prose pre code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent border-0 p-0;
   }
 
   .prose blockquote {
-    @apply border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600;
+    @apply border-l-4 border-rule pl-4 italic my-4 text-ink-soft;
   }
 
   .prose table {
@@ -96,11 +138,11 @@
   }
 
   .prose th {
-    @apply text-left font-semibold p-3 bg-gray-100 border-b border-gray-200;
+    @apply text-left font-semibold p-3 bg-wash border-b border-rule;
   }
 
   .prose td {
-    @apply p-3 border-b border-gray-100;
+    @apply p-3 border-b border-rule/60;
   }
 }
 
@@ -111,14 +153,14 @@
 @layer components {
   /* Reading Progress Bar */
   .reading-progress {
-    @apply fixed top-0 left-0 h-1 bg-blue-500 z-50;
+    @apply fixed top-0 left-0 h-1 bg-ink z-50;
     width: 0%;
     transition: width 0.1s ease-out;
   }
 
   /* Mobile Navigation */
   .mobile-nav-backdrop {
-    @apply fixed inset-0 bg-gray-900/50 z-40 opacity-0 pointer-events-none transition-opacity;
+    @apply fixed inset-0 bg-ink/40 z-40 opacity-0 pointer-events-none transition-opacity;
   }
 
   .mobile-nav-backdrop.open {
@@ -126,7 +168,7 @@
   }
 
   .mobile-nav-drawer {
-    @apply fixed top-0 right-0 h-full w-80 max-w-full bg-white z-50 shadow-xl;
+    @apply fixed top-0 right-0 h-full w-80 max-w-full bg-paper z-50 shadow-xl;
     @apply transform translate-x-full transition-transform;
   }
 
@@ -136,7 +178,7 @@
 
   /* TOC Active Link */
   [data-toc-target="link"].active {
-    @apply border-blue-500 text-blue-600 font-medium;
+    @apply border-ink text-ink font-medium;
   }
 
   /* Callout Components */
@@ -145,15 +187,17 @@
   }
 
   .callout-note {
-    @apply bg-blue-50 border-blue-500 text-blue-900;
+    @apply bg-wash border-ink;
   }
 
   .callout-warning {
-    @apply bg-amber-50 border-amber-500 text-amber-900;
+    @apply border-amber-500;
+    background: color-mix(in srgb, var(--color-amber-500) 12%, var(--sheet-paper));
   }
 
   .callout-caution {
-    @apply bg-red-50 border-red-500 text-red-900;
+    @apply border-red-500;
+    background: color-mix(in srgb, var(--color-red-500) 12%, var(--sheet-paper));
   }
 
   /* Code Block with Copy Button */
@@ -162,7 +206,7 @@
   }
 
   .code-block-header {
-    @apply flex items-center justify-between px-4 py-2 bg-gray-800 text-gray-300 text-sm rounded-t-lg;
+    @apply flex items-center justify-between px-4 py-2 bg-code text-code-ink/70 text-sm rounded-t-sm border-b border-code-ink/15;
   }
 
   .code-block-content {
@@ -170,7 +214,7 @@
   }
 
   .copy-button {
-    @apply text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors;
+    @apply text-xs px-2 py-1 border border-code-ink/30 hover:bg-code-ink/10 rounded-sm transition-colors;
   }
 
   /* Scroll Animations */
@@ -227,25 +271,66 @@
 }
 
 /* =============================================================================
+   SHEET
+   Every page is a drawing sheet on the same paper as the homepage.
+   ============================================================================= */
+
+@layer base {
+  html { background: var(--sheet-paper); }
+}
+
+@layer components {
+  .sheet-back {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-faint);
+    margin-bottom: 1.25rem;
+  }
+
+  .sheet-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 3px double var(--color-ink);
+  }
+  .sheet-header-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+    margin-bottom: 0.6rem;
+  }
+  .sheet-header-title {
+    font-family: var(--font-drafting);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 5vw, 3.25rem);
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+  .sheet-header-lede {
+    margin-top: 0.75rem;
+    font-size: 1.1rem;
+    color: var(--color-ink-soft);
+  }
+
+  .sheet-section-title {
+    font-family: var(--font-drafting);
+    font-weight: 600;
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+    color: var(--color-ink);
+  }
+}
+
+/* =============================================================================
    BLUEPRINT
    The homepage is a drawing sheet: whiteprint in light mode, cyanotype in
    dark. The canvas paints the paper and the drawing; the words sit on top.
    ============================================================================= */
 
 @layer components {
-  .is-blueprint {
-    --sheet-paper: #f1eee4;
-    --sheet-ink: #1f4f8f;
-    background: var(--sheet-paper);
-    color: var(--sheet-ink);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .is-blueprint {
-      --sheet-paper: #12376a;
-      --sheet-ink: #e4edfb;
-    }
-  }
 
   /* The body's utility colors outrank this layer, so the sheet sets its
      ink here and the words inherit it. */

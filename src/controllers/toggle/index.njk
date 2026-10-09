@@ -12,14 +12,14 @@ nextPage:
 demoContent: |
   <div data-controller="toggle">
     <button data-action="click->toggle#toggle"
-            class="w-full text-left px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex justify-between items-center">
+            class="w-full text-left px-4 py-3 bg-paper border border-rule rounded-lg hover:bg-wash flex justify-between items-center">
       <span class="font-medium">Click to toggle content</span>
-      <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
       </svg>
     </button>
-    <div data-toggle-target="content" class="hidden mt-2 p-4 bg-white border border-gray-200 rounded-lg">
-      <p class="text-gray-600">This content is toggled by the controller. It can contain any HTML.</p>
+    <div data-toggle-target="content" class="hidden mt-2 p-4 bg-paper border border-rule rounded-lg">
+      <p class="text-ink-soft">This content is toggled by the controller. It can contain any HTML.</p>
     </div>
   </div>
 ---
