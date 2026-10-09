@@ -122,12 +122,12 @@ All documentation content is derived from `STATIC_SITE_SPEC.md` (v1.7.0). `src/s
 ## Example Sites
 
 Sites built to this specification:
-- [Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company) (v1.2)
-- [The DBT Resource](https://thedbtresource.com) (v1.3)
-- [Engineer's Manual](https://engineers-manual.com) (v1.4)
-- [Lytle Landscape](https://lytle-landscape.com) (v1.5)
-- [VetMGMedia](https://vetmgmedia.com) (v1.6)
 - [Danny Caruso](https://dannycaruso.link) (v1.7)
+- [VetMGMedia](https://vetmgmedia.com) (v1.6)
+- [Lytle Landscape](https://lytle-landscape.com) (v1.5)
+- [Engineer's Manual](https://engineers-manual.com) (v1.4)
+- [The DBT Resource](https://thedbtresource.com) (v1.3)
+- [Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company) (v1.2)
 
 ## Deployment
 

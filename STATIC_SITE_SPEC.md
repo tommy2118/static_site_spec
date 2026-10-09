@@ -2508,12 +2508,12 @@ In addition to Section 10:
 
 Sites built to this specification serve as reference implementations:
 
-1. **[Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company)** — Theater company website (v1.2)
-2. **[The DBT Resource](https://thedbtresource.com)** — Educational resource site (v1.3)
-3. **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
-4. **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
-5. **[VetMGMedia](https://vetmgmedia.com)** — Veteran-owned agency building contractor financing sites (v1.6)
-6. **[Danny Caruso](https://dannycaruso.link)** — Actor portfolio, a scene site run by lighting cues (v1.7)
+1. **[Danny Caruso](https://dannycaruso.link)** — Actor portfolio, a scene site run by lighting cues (v1.7)
+2. **[VetMGMedia](https://vetmgmedia.com)** — Veteran-owned agency building contractor financing sites (v1.6)
+3. **[Lytle Landscape](https://lytle-landscape.com)** — Landscape design business (v1.5)
+4. **[Engineer's Manual](https://engineers-manual.com)** — Technical reference book (v1.4)
+5. **[The DBT Resource](https://thedbtresource.com)** — Educational resource site (v1.3)
+6. **[Nomad Theater Company](https://tommy2118.github.io/nomad-theater-company)** — Theater company website (v1.2)
 
 Section 11 was drawn from three scene sites built in this stack before the spec described them: Harmonices Mundi (a WebGL orrery), Center of Percussion (longsword physics), and Metes & Bounds (a survey plat). They are not public.
 
