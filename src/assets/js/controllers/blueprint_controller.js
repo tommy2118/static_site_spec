@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import Plotter from "../lib/plotter.js";
 import Pose from "../lib/pose.js";
 import Flow from "../lib/flow.js";
-import { drawing, LABELS } from "../lib/sheet.js";
+import { drawing, LABELS, LABEL_EM } from "../lib/sheet.js";
 import { project } from "../lib/iso.js";
 
 /**
@@ -100,8 +100,14 @@ export default class extends Controller {
       return [cx + p.x * scale, cy - p.y * scale];
     };
 
+    // Labels grow and shrink with the drawing, never past their set size.
+    // Too small to read, they fade: the words are all in the page anyway.
+    const labelScale = Math.min(1, (LABEL_EM * scale) / LABEL_FONT.size);
+    const labelAlpha = Math.min(1, Math.max(0, (labelScale - 0.5) / 0.15));
+
     this.plotter.render({
       time,
+      labelScale,
       dpr: Math.min(2, window.devicePixelRatio || 1),
       paper: this.paper,
       ink: this.ink,
@@ -116,7 +122,7 @@ export default class extends Controller {
       }),
       labels: sheet.labels.map((l) => {
         const [x, y] = toScreen(l.at);
-        return { text: l.text, x, y, alpha: l.alpha };
+        return { text: l.text, x, y, alpha: l.alpha * labelAlpha };
       }),
     });
     this.raf = requestAnimationFrame(this.frame);

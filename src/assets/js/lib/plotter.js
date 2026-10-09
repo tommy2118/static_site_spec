@@ -219,7 +219,8 @@ export default class Plotter {
 
   // Everything in CSS pixels. segments: { ax, ay, bx, by, width, alpha };
   // dots: { x, y, radius, alpha }; labels: { text, x, y, alpha }.
-  render({ time, dpr, paper, ink, segments, dots, labels }) {
+  // labelScale: how large labels draw relative to the font they were built at.
+  render({ time, dpr, paper, ink, segments, dots, labels, labelScale = 1 }) {
     const { canvas, gl } = this;
     const w = Math.round(canvas.clientWidth * dpr);
     const h = Math.round(canvas.clientHeight * dpr);
@@ -259,7 +260,8 @@ export default class Plotter {
     for (const l of labels) {
       const rect = this.atlas.rects.get(l.text);
       if (!rect || l.alpha <= 0.01) continue;
-      glyphs.push(l.x * dpr, (l.y - rect.size[1] / 2) * dpr, rect.size[0] * dpr, rect.size[1] * dpr, ...rect.uv, l.alpha);
+      const [w, h] = [rect.size[0] * labelScale, rect.size[1] * labelScale];
+      glyphs.push(l.x * dpr, (l.y - h / 2) * dpr, w * dpr, h * dpr, ...rect.uv, l.alpha);
     }
     if (glyphs.length) {
       gl.useProgram(this.label);

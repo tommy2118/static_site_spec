@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { drawing, LABELS, BOUNDS } from "../src/assets/js/lib/sheet.js";
+import { drawing, LABELS, BOUNDS, WIRING, LABEL_EM } from "../src/assets/js/lib/sheet.js";
 
 // The drawing as data: an exploded static site. Given a pose, the moving
 // particles, and the time, it returns 3D segments, labels, and dots. It
@@ -57,5 +57,14 @@ describe("drawing", () => {
     for (const s of d.segments) assert.ok(inside(s.a) && inside(s.b), JSON.stringify(s));
     for (const l of d.labels) assert.ok(inside(l.at), l.text);
     for (const dot of d.dots) assert.ok(inside(dot.at));
+  });
+
+  test("makes every wiring box wide enough to hold its label", () => {
+    for (const w of WIRING) {
+      const width = Math.abs(w.z[0] - w.z[1]);
+      // A monospace label is about 0.6 em per character, plus a margin each side.
+      const needed = w.text.length * 0.6 * LABEL_EM + 0.3;
+      assert.ok(width >= needed, `${w.text}: ${width.toFixed(2)} < ${needed.toFixed(2)}`);
+    }
   });
 });

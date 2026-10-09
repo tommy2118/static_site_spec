@@ -13,6 +13,10 @@ import { pointAt } from "./flow.js";
 
 export const BOUNDS = { min: [-7, 0, -3], max: [7, 6, 3] };
 
+// A label's em in drawing units. The plotter sizes labels with the drawing,
+// so anything drawn around a label can be measured against it.
+export const LABEL_EM = 0.18;
+
 const W = 2;          // half width of a layer
 const D = 1.5;        // half depth of a layer
 const T = 0.22;       // layer thickness
@@ -30,10 +34,10 @@ const TREE = [
 
 // Stands on the plane behind the layers that faces the viewer once the
 // drawing has turned for the Scene Sites chapter; read left to right as z falls.
-const WIRING = [
-  { text: "chapter", z: [2.8, 1.3] },
-  { text: "scene controller", z: [0.9, -0.9] },
-  { text: "lib/", z: [-1.3, -2.8] },
+export const WIRING = [
+  { text: "chapter", z: [2.9, 1.6] },
+  { text: "scene controller", z: [1.15, -1.15] },
+  { text: "lib/", z: [-1.45, -2.65] },
 ];
 
 export const LABELS = [...new Set([...LAYERS, ...TREE.map((t) => t.text), "dist/", ...WIRING.map((w) => w.text)])];
