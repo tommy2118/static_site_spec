@@ -1,7 +1,7 @@
 # Static Site Specification
 
-**Version:** 1.7.1
-**Last Updated:** 9 October 2026
+**Version:** 1.7.2
+**Last Updated:** 17 November 2026
 **Author:** Tommy A. Caruso Sr.
 
 ---
@@ -40,7 +40,7 @@ A site is complete when:
 
 | Technology | Version | Purpose | Installation |
 |------------|---------|---------|--------------|
-| Node.js | 20+ | Runtime | System install |
+| Node.js | 22+ | Runtime | System install |
 | Eleventy | 3.1.x | Static site generator | `@11ty/eleventy` |
 | Tailwind CSS | 4.1.x | Utility-first CSS | `tailwindcss` |
 | PostCSS | 8.x | CSS processing | `postcss` |
@@ -71,6 +71,10 @@ All JavaScript uses **ESM (ES Modules)**. No CommonJS.
 | PostCSS config file | Configuration lives in eleventy.config.js |
 | Alpine.js | Stimulus is the standard; one JS framework only |
 | TypeScript | Unnecessary complexity for static site JS; vanilla ES6+ suffices |
+
+### Build-Time Globals
+
+Code reaches for no globals: the clock, the environment, and the browser are handed in (Section 11 does this for scenes). One exception is named here. `eleventy.config.js` runs at the build's edge, so it may read `process.env.NODE_ENV` (4.2) and `new Date()` (the `year` shortcode, 4.2). Domain code in `lib/` or `scripts/` does not.
 
 ---
 
@@ -125,19 +129,30 @@ project/
 │   ├── about.njk                 # About page
 │   └── contact.njk               # Contact page
 │
-├── test/                         # Scene sites only: node:test specs (Section 11)
+├── test/                         # node:test specs: scene lib/ (Section 11) and scripts/
+│
+├── scripts/                      # Node scripts run by hand or by the build (optional)
+│
+├── docs/                         # Project documents that are not pages (optional)
+│
+├── kit/                          # Distributable kits built beside the site, such as an agent plugin (optional)
 │
 ├── dist/                         # Build output (gitignored)
 │
+├── .claude/                      # Agent hooks and settings (optional)
+│
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml            # GitHub Pages deployment
+│       ├── deploy.yml            # GitHub Pages deployment
+│       └── *.yml                 # Other checks, such as tests on pull requests (optional)
 │
 ├── .gitignore
 ├── eleventy.config.js            # Eleventy configuration
 ├── package.json
 ├── package-lock.json
 ├── CLAUDE.md                     # AI pairing context
+├── LICENSE                       # Code license (optional)
+├── LICENSE-CONTENT.md            # Content license, when it differs from the code's (optional)
 └── README.md                     # Human documentation
 ```
 
@@ -170,8 +185,14 @@ project/
 | Stimulus setup | `src/assets/js/application.js` |
 | Interactive behaviors | `src/assets/js/controllers/*.js` |
 | Scene logic, renderer, domain math | `src/assets/js/lib/*.js` (Section 11) |
-| Tests for `lib/` modules | `test/*.test.js` (Section 11) |
+| Tests for `lib/` modules and scripts | `test/*.test.js` |
+| Scripts run by hand or by the build (imports, generators) | `scripts/*.js` |
+| Plans and other project documents that are not pages | `docs/*.md` |
+| Kits the site distributes but does not render, such as a coding-agent plugin | `kit/` |
 | Standalone pages | `src/*.njk` (index, about, contact) |
+| Licenses (README says which covers what) | `LICENSE`, `LICENSE-CONTENT.md` |
+| Checks that run on pull requests | `.github/workflows/*.yml` |
+| Hooks and settings for coding agents working in the repo | `.claude/` |
 | Section landing pages | `src/[section]/index.njk` |
 | Blog posts / articles | `src/content/posts/*.md` |
 | Portfolio projects | `src/portfolio/projects/*.md` |
@@ -209,7 +230,7 @@ project/
 
 **Notes:**
 - `type: "module"` is required for ESM
-- Only three scripts: `dev`, `build`, `clean`. Scene sites add a fourth, `test` (Section 11)
+- Three scripts every site has: `dev`, `build`, `clean`. Any site may add a fourth, `test` (`node --test`). Scene sites always do (Section 11), and so does a site that sets `indexable: false`, to test its search gate (4.13)
 - All style/JS processing happens through Eleventy hooks
 - No `start` script (use `dev`)
 - No separate CSS watch script
@@ -628,15 +649,6 @@ export default function (eleventyConfig) {
   h1, h2, h3, h4 { page-break-after: avoid; }
   p, li, blockquote { orphans: 3; widows: 3; }
 
-  /* Add site attribution */
-  body::after {
-    content: "Printed from {{ site.url }}";
-    display: block;
-    text-align: center;
-    margin-top: 2rem;
-    font-size: 0.8em;
-    color: #666;
-  }
 }
 ```
 
@@ -1144,6 +1156,8 @@ export default class extends Controller {
   "phone": "(555) 123-4567",
   "phoneRaw": "5551234567",
   "license": "Optional license number",
+  "rights": "All rights reserved.",
+  "indexable": true,
   "author": {
     "name": "Author Name",
     "email": "author@example.com",
@@ -1179,8 +1193,12 @@ export default class extends Controller {
 - `phone`: Formatted phone number for display
 - `phoneRaw`: Unformatted number for `tel:` links
 - `license`: Professional license number (service businesses)
+- `rights`: The rights statement after the footer's copyright line. Leave it out, or mark it `blank()` while the license is undecided, for "All rights reserved.", which is the legal default when no license is granted. A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
+- `url`: The site's address, with no trailing slash. Until the domain is known, leave it out, or mark it `blank()` in a `site.js` (Section 5). The head then writes no canonical link and no Open Graph URL or image.
 - `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
+- `indexable`: Set it to `false` while the site must stay out of search, for example before launch or for a demo. Leave it out, or set `true`, once the site may be found. Only the boolean `false` closes the gate (4.13)
 - `theme.color`: Browser theme color (address bar, PWA)
+- `theme.darkColor`: Optional browser theme color for a dark screen, for a site whose dark theme follows the screen setting (`prefers-color-scheme`)
 - `social`: External profile links (add as needed)
 - `stats`: Displayable metrics for impact sections (keys are flexible)
 - `analytics.ga4`: Google Analytics 4 measurement ID
@@ -1355,8 +1373,16 @@ layout: layouts/base.njk
 <title>{{ title }}{% if title %} | {% endif %}{{ site.name }}</title>
 <meta name="description" content="{{ description | default(site.description) }}">
 
-{# Canonical URL #}
-<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+{# Search gate: while site.indexable is false, every page stays out of search (4.7) #}
+{% if site.indexable === false %}
+<meta name="robots" content="noindex, nofollow">
+{% endif %}
+
+{# Canonical URL and Open Graph links need the site's address: none until it is known #}
+{%- set siteUrl = site.url if (site.url and site.url.kind != "blank") else "" -%}
+{% if siteUrl %}
+<link rel="canonical" href="{{ siteUrl }}{{ page.url }}">
+{% endif %}
 
 {# Dynamic OG Image Selection (customize paths per section) #}
 {%- if image -%}
@@ -1373,15 +1399,18 @@ layout: layouts/base.njk
 <meta property="og:title" content="{{ og_title | default(title) | default(site.name) }}">
 <meta property="og:description" content="{{ og_description | default(description) | default(site.description) }}">
 <meta property="og:type" content="website">
-<meta property="og:url" content="{{ site.url }}{{ page.url }}">
-<meta property="og:image" content="{{ site.url }}{{ ogImage }}">
+{% if siteUrl %}
+<meta property="og:url" content="{{ siteUrl }}{{ page.url }}">
+<meta property="og:image" content="{{ siteUrl }}{{ ogImage }}">
+{% endif %}
 
 {# Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title | default(title) | default(site.name) }}">
 <meta name="twitter:description" content="{{ og_description | default(description) | default(site.description) }}">
 
-{# Theme Color #}
+{# Theme Color: the dark one first, so a dark screen matches it before the default #}
+{% if site.theme.darkColor %}<meta name="theme-color" media="(prefers-color-scheme: dark)" content="{{ site.theme.darkColor }}">{% endif %}
 <meta name="theme-color" content="{{ site.theme.color | default('#ffffff') }}">
 
 {# Favicon - update paths as needed #}
@@ -1405,10 +1434,15 @@ layout: layouts/base.njk
 - Font Awesome via CDN provides icons: `<i class="fas fa-check"></i>`
 - Use `| url` filter on asset paths for correct pathPrefix handling
 - `og_title` and `og_description` frontmatter allow explicit Open Graph overrides separate from page title/description
+- The search gate closes only on the boolean `false`. A string `"false"` or `null` leaves the site indexable, so a site that sets `indexable: false` tests that every page carries the robots element (Section 8)
+- robots.txt: the gate works without one. Google needs to crawl a page to read its noindex: the page "must not be blocked by a robots.txt file", and a blocked page "can still appear in search results" ([Google Search Central, Block Search indexing with noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing), checked 17 November 2026). A site may add `Disallow: /` to stop crawling as well, at that cost
+- The canonical link, `og:url`, and `og:image` need an absolute address. They render only when `site.url` is known, so a site built before its domain is chosen does not guess one (Section 5, Facts Not Yet Known)
 
 ### 4.14 src/_includes/partials/nav.njk
 
 For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to `<main>` in base.njk.
+
+The mobile menu belongs to one controller, `mobile-nav` (4.6). Its button, icons, and menu are all targets inside the `<nav>` that carries it. A target outside its controller's element is never found, so the menu would never open.
 
 ```nunjucks
 {# Fixed header variant: <header class="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b"> #}
@@ -1438,19 +1472,22 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
       <button
         type="button"
         class="md:hidden p-2 -mr-2"
-        data-controller="toggle"
-        data-action="click->toggle#toggle"
+        data-action="click->mobile-nav#toggle"
+        data-mobile-nav-target="button"
         aria-expanded="false"
         aria-label="Toggle menu"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg data-mobile-nav-target="iconOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg data-mobile-nav-target="iconClose" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </div>
 
     {# Mobile Navigation #}
-    <div data-toggle-target="content" class="hidden md:hidden pb-4">
+    <div data-mobile-nav-target="menu" class="hidden md:hidden pb-4">
       <ul class="flex flex-col gap-2">
         {% for item in navigation.main %}
         <li>
@@ -1476,7 +1513,7 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       {# Copyright #}
       <p class="text-gray-600 text-sm">
-        &copy; {% year %} {{ site.name }}. All rights reserved.
+        &copy; {% year %} {{ site.name }}. {% if site.rights and site.rights.kind != "blank" %}{{ site.rights }}{% else %}All rights reserved.{% endif %}
       </p>
 
       {# Footer Navigation #}
@@ -1637,11 +1674,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Test
+        run: npm test --if-present
 
       - name: Build
         run: npm run build
@@ -1665,6 +1705,9 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 ```
+
+**Notes:**
+- The Test step runs the site's `test` script before the build, and skips it when the site has none (`--if-present`). A failing check stops the deploy. It stops an ungated page (4.13) only where the tests check every page
 
 ---
 
@@ -1942,7 +1985,7 @@ Prefer utilities. Use `@layer components` sparingly:
 | `dev` | `eleventy --serve --watch` | Local development |
 | `build` | `NODE_ENV=production eleventy` | Production build |
 | `clean` | `rm -rf dist` | Remove build artifacts |
-| `test` | `node --test` | Scene sites only: run `lib/` specs (Section 11) |
+| `test` | `node --test` | Optional: run `test/` specs (scene `lib/`, `scripts/`, the build). Required for scene sites and for sites with `indexable: false` |
 
 ### Development Workflow
 
@@ -2010,7 +2053,7 @@ npm run dev
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 
 ### Commands
 
@@ -2115,7 +2158,7 @@ Before marking a site "done," verify:
 
 - [ ] Directory structure matches Section 3
 - [ ] All required files present (eleventy.config.js, package.json, etc.)
-- [ ] No files outside defined structure
+- [ ] No files outside defined structure (Section 3, including its optional entries: `scripts/`, `docs/`, `kit/`, `.claude/`, extra workflows, and license files)
 
 ### Templates
 
@@ -2136,6 +2179,7 @@ Before marking a site "done," verify:
 - [ ] Stimulus application initializes
 - [ ] All controllers registered
 - [ ] Interactive elements function correctly
+- [ ] At phone width, the mobile menu opens and closes, and the button's `aria-expanded` follows it
 - [ ] No JavaScript errors in console
 
 ### Content
@@ -2165,6 +2209,8 @@ Before marking a site "done," verify:
 ### Deployment
 
 - [ ] GitHub Actions workflow present
+- [ ] The workflow runs the tests before the build (4.20)
+- [ ] While `indexable` is false, every page carries the robots noindex element, and a test proves it
 - [ ] Deployment succeeds
 - [ ] Site accessible at expected URL
 
@@ -2524,6 +2570,33 @@ Section 11 was drawn from three scene sites built in this stack before the spec 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.7.2 (17 November 2026)
+
+Corrections found while planning a site built to v1.7.1 that had no domain or license yet:
+
+**Fixed:**
+- The 4.14 nav partial now opens its mobile menu. It put a `toggle` controller on the button and the menu's `toggle` target outside the button, so Stimulus never found the target and the menu never opened. The partial now uses `mobile-nav` (4.6), wired as that controller's own usage comment shows
+
+**Changed:**
+- The 4.13 head writes the canonical link, `og:url`, and `og:image` only when `site.url` is known. A site built before its domain is chosen leaves `url` out, or marks it `blank()` (Section 5), and guesses no address
+- The 4.15 footer takes its rights statement from `site.rights`, with "All rights reserved." when it is left out or marked `blank()`. A site that licenses its content says so, instead of contradicting its license
+- Section 3 lists two optional folders that sites built to the spec already use: `scripts/` for Node scripts run by hand or by the build, and `docs/` for project documents that are not pages
+- Section 3 lists optional root license files, `LICENSE` and `LICENSE-CONTENT.md`, for a site that licenses its content apart from its code
+- Any site may add the `test` script (4.1, Section 8). It was for scene sites only
+- The 4.20 deploy workflow runs the tests before the build, and skips them when a site has none
+- Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
+- Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
+- Section 3 lists an optional `kit/` folder for kits the site distributes but does not render, such as a coding-agent plugin. Eleventy does not read it, so a kit's own README stays out of the site
+- The 4.3 print styles no longer print "Printed from {{ site.url }}". CSS cannot run a template, so every site printed that text literally
+
+**Added:**
+- 4.13 writes an optional dark theme color (`site.theme.darkColor`) first, for sites whose dark theme follows the screen setting
+- A search gate. `site.indexable: false` (4.7) makes the head (4.13) write `<meta name="robots" content="noindex, nofollow">` on every page. Four sites built to the spec already gated search with their own flags (`draft`, `demo`) or a fixed tag. The note says why a robots.txt Disallow is optional, citing Google's documentation
+- Section 2 names the one exception to injecting globals: `eleventy.config.js` may read `process.env.NODE_ENV` and `new Date()`
+- Section 10 checks that the mobile menu opens and closes at phone width, that the workflow runs the tests, and that the search gate holds on every page
+
+---
 
 ### v1.7.1 (9 October 2026)
 

@@ -33,6 +33,10 @@ nextPage:
       <td><code>npm run clean</code></td>
       <td>Remove dist/ directory</td>
     </tr>
+    <tr>
+      <td><code>npm test</code></td>
+      <td>Optional: run <code>test/</code> specs. Required for scene sites and for sites with <code>indexable: false</code>. The deploy workflow runs it when present</td>
+    </tr>
   </tbody>
 </table>
 
@@ -59,10 +63,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - run: npm ci
+      - run: npm test --if-present
       - run: npm run build
 
       - uses: actions/configure-pages@v5
