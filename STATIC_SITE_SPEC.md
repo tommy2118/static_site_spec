@@ -40,7 +40,7 @@ A site is complete when:
 
 | Technology | Version | Purpose | Installation |
 |------------|---------|---------|--------------|
-| Node.js | 20+ | Runtime | System install |
+| Node.js | 22+ | Runtime | System install |
 | Eleventy | 3.1.x | Static site generator | `@11ty/eleventy` |
 | Tailwind CSS | 4.1.x | Utility-first CSS | `tailwindcss` |
 | PostCSS | 8.x | CSS processing | `postcss` |
@@ -137,9 +137,12 @@ project/
 │
 ├── dist/                         # Build output (gitignored)
 │
+├── .claude/                      # Agent hooks and settings (optional)
+│
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml            # GitHub Pages deployment
+│       ├── deploy.yml            # GitHub Pages deployment
+│       └── *.yml                 # Other checks, such as tests on pull requests (optional)
 │
 ├── .gitignore
 ├── eleventy.config.js            # Eleventy configuration
@@ -185,6 +188,8 @@ project/
 | Plans and other project documents that are not pages | `docs/*.md` |
 | Standalone pages | `src/*.njk` (index, about, contact) |
 | Licenses (README says which covers what) | `LICENSE`, `LICENSE-CONTENT.md` |
+| Checks that run on pull requests | `.github/workflows/*.yml` |
+| Hooks and settings for coding agents working in the repo | `.claude/` |
 | Section landing pages | `src/[section]/index.njk` |
 | Blog posts / articles | `src/content/posts/*.md` |
 | Portfolio projects | `src/portfolio/projects/*.md` |
@@ -1673,7 +1678,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -2052,7 +2057,7 @@ npm run dev
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 
 ### Commands
 
@@ -2584,6 +2589,8 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - Section 3 lists optional root license files, `LICENSE` and `LICENSE-CONTENT.md`, for a site that licenses its content apart from its code
 - Any site may add the `test` script (4.1, Section 8). It was for scene sites only
 - The 4.20 deploy workflow runs the tests before the build, and skips them when a site has none
+- Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
+- Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
 
 **Added:**
 - A search gate. `site.indexable: false` (4.7) makes the head (4.13) write `<meta name="robots" content="noindex, nofollow">` on every page. Four sites built to the spec already gated search with their own flags (`draft`, `demo`) or a fixed tag. The note says why a robots.txt Disallow is optional, citing Google's documentation
