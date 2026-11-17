@@ -135,6 +135,8 @@ project/
 │
 ├── docs/                         # Project documents that are not pages (optional)
 │
+├── kit/                          # Distributable kits built beside the site, such as an agent plugin (optional)
+│
 ├── dist/                         # Build output (gitignored)
 │
 ├── .claude/                      # Agent hooks and settings (optional)
@@ -186,6 +188,7 @@ project/
 | Tests for `lib/` modules and scripts | `test/*.test.js` |
 | Scripts run by hand or by the build (imports, generators) | `scripts/*.js` |
 | Plans and other project documents that are not pages | `docs/*.md` |
+| Kits the site distributes but does not render, such as a coding-agent plugin | `kit/` |
 | Standalone pages | `src/*.njk` (index, about, contact) |
 | Licenses (README says which covers what) | `LICENSE`, `LICENSE-CONTENT.md` |
 | Checks that run on pull requests | `.github/workflows/*.yml` |
@@ -2582,6 +2585,7 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - The 4.20 deploy workflow runs the tests before the build, and skips them when a site has none
 - Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
 - Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
+- Section 3 lists an optional `kit/` folder for kits the site distributes but does not render, such as a coding-agent plugin. Eleventy does not read it, so a kit's own README stays out of the site
 - The 4.3 print styles no longer print "Printed from {{ site.url }}". CSS cannot run a template, so every site printed that text literally
 
 **Added:**
