@@ -72,6 +72,10 @@ All JavaScript uses **ESM (ES Modules)**. No CommonJS.
 | Alpine.js | Stimulus is the standard; one JS framework only |
 | TypeScript | Unnecessary complexity for static site JS; vanilla ES6+ suffices |
 
+### Build-Time Globals
+
+Code reaches for no globals: the clock, the environment, and the browser are handed in (Section 11 does this for scenes). One exception is named here. `eleventy.config.js` runs at the build's edge, so it may read `process.env.NODE_ENV` (4.2) and `new Date()` (the `year` shortcode, 4.2). Domain code in `lib/` or `scripts/` does not.
+
 ---
 
 ## 3. DIRECTORY STRUCTURE
@@ -142,6 +146,8 @@ project/
 ├── package.json
 ├── package-lock.json
 ├── CLAUDE.md                     # AI pairing context
+├── LICENSE                       # Code license (optional)
+├── LICENSE-CONTENT.md            # Content license, when it differs from the code's (optional)
 └── README.md                     # Human documentation
 ```
 
@@ -178,6 +184,7 @@ project/
 | Scripts run by hand or by the build (imports, generators) | `scripts/*.js` |
 | Plans and other project documents that are not pages | `docs/*.md` |
 | Standalone pages | `src/*.njk` (index, about, contact) |
+| Licenses (README says which covers what) | `LICENSE`, `LICENSE-CONTENT.md` |
 | Section landing pages | `src/[section]/index.njk` |
 | Blog posts / articles | `src/content/posts/*.md` |
 | Portfolio projects | `src/portfolio/projects/*.md` |
@@ -215,7 +222,7 @@ project/
 
 **Notes:**
 - `type: "module"` is required for ESM
-- Only three scripts: `dev`, `build`, `clean`. Scene sites add a fourth, `test` (Section 11)
+- Three scripts every site has: `dev`, `build`, `clean`. Any site may add a fourth, `test` (`node --test`). Scene sites always do (Section 11), and so does a site that sets `indexable: false`, to test its search gate (4.13)
 - All style/JS processing happens through Eleventy hooks
 - No `start` script (use `dev`)
 - No separate CSS watch script
@@ -1151,6 +1158,7 @@ export default class extends Controller {
   "phoneRaw": "5551234567",
   "license": "Optional license number",
   "rights": "All rights reserved.",
+  "indexable": true,
   "author": {
     "name": "Author Name",
     "email": "author@example.com",
@@ -1189,6 +1197,7 @@ export default class extends Controller {
 - `rights`: The rights statement after the footer's copyright line. Leave it out for "All rights reserved." A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
 - `url`: The site's address, with no trailing slash. Until the domain is known, leave it out, or mark it `blank()` in a `site.js` (Section 5). The head then writes no canonical link and no Open Graph URL or image.
 - `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
+- `indexable`: Set it to `false` while the site must stay out of search, for example before launch or for a demo. Leave it out, or set `true`, once the site may be found. Only the boolean `false` closes the gate (4.13)
 - `theme.color`: Browser theme color (address bar, PWA)
 - `social`: External profile links (add as needed)
 - `stats`: Displayable metrics for impact sections (keys are flexible)
@@ -1364,6 +1373,11 @@ layout: layouts/base.njk
 <title>{{ title }}{% if title %} | {% endif %}{{ site.name }}</title>
 <meta name="description" content="{{ description | default(site.description) }}">
 
+{# Search gate: while site.indexable is false, every page stays out of search (4.7) #}
+{% if site.indexable === false %}
+<meta name="robots" content="noindex, nofollow">
+{% endif %}
+
 {# Canonical URL and Open Graph links need the site's address: none until it is known #}
 {%- set siteUrl = site.url if (site.url and site.url.kind != "blank") else "" -%}
 {% if siteUrl %}
@@ -1419,6 +1433,8 @@ layout: layouts/base.njk
 - Font Awesome via CDN provides icons: `<i class="fas fa-check"></i>`
 - Use `| url` filter on asset paths for correct pathPrefix handling
 - `og_title` and `og_description` frontmatter allow explicit Open Graph overrides separate from page title/description
+- The search gate closes only on the boolean `false`. A string `"false"` or `null` leaves the site indexable, so a site that sets `indexable: false` tests that every page carries the robots element (Section 8)
+- robots.txt: the gate works without one. Google needs to crawl a page to read its noindex: the page "must not be blocked by a robots.txt file", and a blocked page "can still appear in search results" ([Google Search Central, Block Search indexing with noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing), checked 17 November 2026). A site may add `Disallow: /` to stop crawling as well, at that cost
 - The canonical link, `og:url`, and `og:image` need an absolute address. They render only when `site.url` is known, so a site built before its domain is chosen does not guess one (Section 5, Facts Not Yet Known)
 
 ### 4.14 src/_includes/partials/nav.njk
@@ -1663,6 +1679,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test
+        run: npm test --if-present
+
       - name: Build
         run: npm run build
 
@@ -1685,6 +1704,9 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 ```
+
+**Notes:**
+- The Test step runs the site's `test` script before the build, and skips it when the site has none (`--if-present`). A failing check stops the deploy. It stops an ungated page (4.13) only where the tests check every page
 
 ---
 
@@ -1962,7 +1984,7 @@ Prefer utilities. Use `@layer components` sparingly:
 | `dev` | `eleventy --serve --watch` | Local development |
 | `build` | `NODE_ENV=production eleventy` | Production build |
 | `clean` | `rm -rf dist` | Remove build artifacts |
-| `test` | `node --test` | Scene sites only: run `lib/` specs (Section 11) |
+| `test` | `node --test` | Optional: run `test/` specs (scene `lib/`, `scripts/`, the build). Required for scene sites and for sites with `indexable: false` |
 
 ### Development Workflow
 
@@ -2186,6 +2208,8 @@ Before marking a site "done," verify:
 ### Deployment
 
 - [ ] GitHub Actions workflow present
+- [ ] The workflow runs the tests before the build (4.20)
+- [ ] While `indexable` is false, every page carries the robots noindex element, and a test proves it
 - [ ] Deployment succeeds
 - [ ] Site accessible at expected URL
 
@@ -2557,9 +2581,14 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - The 4.13 head writes the canonical link, `og:url`, and `og:image` only when `site.url` is known. A site built before its domain is chosen leaves `url` out, or marks it `blank()` (Section 5), and guesses no address
 - The 4.15 footer takes its rights statement from `site.rights`, with "All rights reserved." when it is left out. A site that licenses its content says so, instead of contradicting its license
 - Section 3 lists two optional folders that sites built to the spec already use: `scripts/` for Node scripts run by hand or by the build, and `docs/` for project documents that are not pages
+- Section 3 lists optional root license files, `LICENSE` and `LICENSE-CONTENT.md`, for a site that licenses its content apart from its code
+- Any site may add the `test` script (4.1, Section 8). It was for scene sites only
+- The 4.20 deploy workflow runs the tests before the build, and skips them when a site has none
 
 **Added:**
-- Section 10 checks that the mobile menu opens and closes at phone width
+- A search gate. `site.indexable: false` (4.7) makes the head (4.13) write `<meta name="robots" content="noindex, nofollow">` on every page. Four sites built to the spec already gated search with their own flags (`draft`, `demo`) or a fixed tag. The note says why a robots.txt Disallow is optional, citing Google's documentation
+- Section 2 names the one exception to injecting globals: `eleventy.config.js` may read `process.env.NODE_ENV` and `new Date()`
+- Section 10 checks that the mobile menu opens and closes at phone width, that the workflow runs the tests, and that the search gate holds on every page
 
 ---
 
