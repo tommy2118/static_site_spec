@@ -1193,12 +1193,12 @@ export default class extends Controller {
 - `phone`: Formatted phone number for display
 - `phoneRaw`: Unformatted number for `tel:` links
 - `license`: Professional license number (service businesses)
-- `rights`: The rights statement after the footer's copyright line. Leave it out, or mark it `blank()` while the license is undecided, for "All rights reserved.", which is the legal default when no license is granted A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
+- `rights`: The rights statement after the footer's copyright line. Leave it out, or mark it `blank()` while the license is undecided, for "All rights reserved.", which is the legal default when no license is granted. A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
 - `url`: The site's address, with no trailing slash. Until the domain is known, leave it out, or mark it `blank()` in a `site.js` (Section 5). The head then writes no canonical link and no Open Graph URL or image.
 - `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
 - `indexable`: Set it to `false` while the site must stay out of search, for example before launch or for a demo. Leave it out, or set `true`, once the site may be found. Only the boolean `false` closes the gate (4.13)
 - `theme.color`: Browser theme color (address bar, PWA)
-- `theme.dark`: Optional browser theme color for a dark screen, for a site with a dark theme
+- `theme.darkColor`: Optional browser theme color for a dark screen, for a site whose dark theme follows the screen setting (`prefers-color-scheme`)
 - `social`: External profile links (add as needed)
 - `stats`: Displayable metrics for impact sections (keys are flexible)
 - `analytics.ga4`: Google Analytics 4 measurement ID
@@ -1410,7 +1410,7 @@ layout: layouts/base.njk
 <meta name="twitter:description" content="{{ og_description | default(description) | default(site.description) }}">
 
 {# Theme Color: the dark one first, so a dark screen matches it before the default #}
-{% if site.theme.dark %}<meta name="theme-color" media="(prefers-color-scheme: dark)" content="{{ site.theme.dark }}">{% endif %}
+{% if site.theme.darkColor %}<meta name="theme-color" media="(prefers-color-scheme: dark)" content="{{ site.theme.darkColor }}">{% endif %}
 <meta name="theme-color" content="{{ site.theme.color | default('#ffffff') }}">
 
 {# Favicon - update paths as needed #}
@@ -2580,7 +2580,7 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 
 **Changed:**
 - The 4.13 head writes the canonical link, `og:url`, and `og:image` only when `site.url` is known. A site built before its domain is chosen leaves `url` out, or marks it `blank()` (Section 5), and guesses no address
-- The 4.15 footer takes its rights statement from `site.rights`, with "All rights reserved." when it is left out. A site that licenses its content says so, instead of contradicting its license
+- The 4.15 footer takes its rights statement from `site.rights`, with "All rights reserved." when it is left out or marked `blank()`. A site that licenses its content says so, instead of contradicting its license
 - Section 3 lists two optional folders that sites built to the spec already use: `scripts/` for Node scripts run by hand or by the build, and `docs/` for project documents that are not pages
 - Section 3 lists optional root license files, `LICENSE` and `LICENSE-CONTENT.md`, for a site that licenses its content apart from its code
 - Any site may add the `test` script (4.1, Section 8). It was for scene sites only
@@ -2588,11 +2588,10 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
 - Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
 - Section 3 lists an optional `kit/` folder for kits the site distributes but does not render, such as a coding-agent plugin. Eleventy does not read it, so a kit's own README stays out of the site
-- The 4.15 footer treats a `blank()` rights line as unset, so it prints "All rights reserved." and never "[object Object]"
-- 4.13 writes an optional dark theme color (`site.theme.dark`) first, for sites with a dark theme
 - The 4.3 print styles no longer print "Printed from {{ site.url }}". CSS cannot run a template, so every site printed that text literally
 
 **Added:**
+- 4.13 writes an optional dark theme color (`site.theme.darkColor`) first, for sites whose dark theme follows the screen setting
 - A search gate. `site.indexable: false` (4.7) makes the head (4.13) write `<meta name="robots" content="noindex, nofollow">` on every page. Four sites built to the spec already gated search with their own flags (`draft`, `demo`) or a fixed tag. The note says why a robots.txt Disallow is optional, citing Google's documentation
 - Section 2 names the one exception to injecting globals: `eleventy.config.js` may read `process.env.NODE_ENV` and `new Date()`
 - Section 10 checks that the mobile menu opens and closes at phone width, that the workflow runs the tests, and that the search gate holds on every page

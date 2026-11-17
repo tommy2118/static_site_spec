@@ -21,21 +21,20 @@ prevPage:
 <h3>Changed</h3>
 <ul>
   <li>The head partial (4.13) writes the canonical link, <code>og:url</code>, and <code>og:image</code> only when <code>site.url</code> is known. A site built before its domain is chosen leaves <code>url</code> out, or marks it <code>blank()</code>, and guesses no address</li>
-  <li>The footer partial (4.15) takes its rights statement from <code>site.rights</code>, with "All rights reserved." when it is left out</li>
+  <li>The footer partial (4.15) takes its rights statement from <code>site.rights</code>, with "All rights reserved." when it is left out or marked <code>blank()</code></li>
   <li>Section 3 lists two optional folders that sites built to the spec already use: <code>scripts/</code> and <code>docs/</code></li>
   <li>Section 3 lists optional root license files, <code>LICENSE</code> and <code>LICENSE-CONTENT.md</code>, for a site that licenses its content apart from its code</li>
   <li>Any site may add the <code>test</code> script. It was for scene sites only</li>
   <li>The deploy workflow runs the tests before the build, and skips them when a site has none</li>
   <li>Node 22 replaces Node 20, which reached end of life on 30 April 2026</li>
   <li>Section 3 lists optional extra workflows in <code>.github/workflows/</code> and an optional <code>.claude/</code> folder for agent hooks and settings</li>
-  <li>The footer treats a <code>blank()</code> rights line as unset, so it prints "All rights reserved." and never "[object Object]"</li>
-  <li>The head writes an optional dark theme color (<code>site.theme.dark</code>) first, for sites with a dark theme</li>
   <li>Section 3 lists an optional <code>kit/</code> folder for kits the site distributes but does not render, such as a coding-agent plugin</li>
   <li>The print styles no longer print "Printed from {{ '{{' }} site.url }}". CSS cannot run a template, so every site printed that text literally</li>
 </ul>
 
 <h3>Added</h3>
 <ul>
+  <li>The head writes an optional dark theme color (<code>site.theme.darkColor</code>) first, for sites whose dark theme follows the screen setting</li>
   <li>A search gate: <code>site.indexable: false</code> makes the head write <code>&lt;meta name="robots" content="noindex, nofollow"&gt;</code> on every page. The note says why a robots.txt Disallow is optional, citing <a href="https://developers.google.com/search/docs/crawling-indexing/block-indexing">Google's documentation</a></li>
   <li>Stack Decisions names the one exception to injecting globals: <code>eleventy.config.js</code> may read <code>process.env.NODE_ENV</code> and <code>new Date()</code></li>
   <li>The quality checklist checks that the mobile menu opens and closes at phone width, that the workflow runs the tests, and that the search gate holds on every page</li>
