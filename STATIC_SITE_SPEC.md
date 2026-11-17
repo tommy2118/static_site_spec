@@ -1193,11 +1193,12 @@ export default class extends Controller {
 - `phone`: Formatted phone number for display
 - `phoneRaw`: Unformatted number for `tel:` links
 - `license`: Professional license number (service businesses)
-- `rights`: The rights statement after the footer's copyright line. Leave it out for "All rights reserved." A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
+- `rights`: The rights statement after the footer's copyright line. Leave it out, or mark it `blank()` while the license is undecided, for "All rights reserved.", which is the legal default when no license is granted A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
 - `url`: The site's address, with no trailing slash. Until the domain is known, leave it out, or mark it `blank()` in a `site.js` (Section 5). The head then writes no canonical link and no Open Graph URL or image.
 - `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
 - `indexable`: Set it to `false` while the site must stay out of search, for example before launch or for a demo. Leave it out, or set `true`, once the site may be found. Only the boolean `false` closes the gate (4.13)
 - `theme.color`: Browser theme color (address bar, PWA)
+- `theme.dark`: Optional browser theme color for a dark screen, for a site with a dark theme
 - `social`: External profile links (add as needed)
 - `stats`: Displayable metrics for impact sections (keys are flexible)
 - `analytics.ga4`: Google Analytics 4 measurement ID
@@ -1408,7 +1409,8 @@ layout: layouts/base.njk
 <meta name="twitter:title" content="{{ og_title | default(title) | default(site.name) }}">
 <meta name="twitter:description" content="{{ og_description | default(description) | default(site.description) }}">
 
-{# Theme Color #}
+{# Theme Color: the dark one first, so a dark screen matches it before the default #}
+{% if site.theme.dark %}<meta name="theme-color" media="(prefers-color-scheme: dark)" content="{{ site.theme.dark }}">{% endif %}
 <meta name="theme-color" content="{{ site.theme.color | default('#ffffff') }}">
 
 {# Favicon - update paths as needed #}
@@ -1511,7 +1513,7 @@ The mobile menu belongs to one controller, `mobile-nav` (4.6). Its button, icons
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       {# Copyright #}
       <p class="text-gray-600 text-sm">
-        &copy; {% year %} {{ site.name }}. {{ site.rights | default("All rights reserved.") }}
+        &copy; {% year %} {{ site.name }}. {% if site.rights and site.rights.kind != "blank" %}{{ site.rights }}{% else %}All rights reserved.{% endif %}
       </p>
 
       {# Footer Navigation #}
@@ -2156,7 +2158,7 @@ Before marking a site "done," verify:
 
 - [ ] Directory structure matches Section 3
 - [ ] All required files present (eleventy.config.js, package.json, etc.)
-- [ ] No files outside defined structure (Section 3, including the optional `scripts/` and `docs/`)
+- [ ] No files outside defined structure (Section 3, including its optional entries: `scripts/`, `docs/`, `kit/`, `.claude/`, extra workflows, and license files)
 
 ### Templates
 
@@ -2586,6 +2588,8 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
 - Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
 - Section 3 lists an optional `kit/` folder for kits the site distributes but does not render, such as a coding-agent plugin. Eleventy does not read it, so a kit's own README stays out of the site
+- The 4.15 footer treats a `blank()` rights line as unset, so it prints "All rights reserved." and never "[object Object]"
+- 4.13 writes an optional dark theme color (`site.theme.dark`) first, for sites with a dark theme
 - The 4.3 print styles no longer print "Printed from {{ site.url }}". CSS cannot run a template, so every site printed that text literally
 
 **Added:**

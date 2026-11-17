@@ -20,7 +20,8 @@ nextPage:
   "scripts": {
     "dev": "eleventy --serve --watch",
     "build": "NODE_ENV=production eleventy",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "node --test"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.1.0",
@@ -35,7 +36,7 @@ nextPage:
 <p><strong>Notes:</strong></p>
 <ul>
   <li><code>type: "module"</code> is required for ESM</li>
-  <li>Only three scripts: <code>dev</code>, <code>build</code>, <code>clean</code></li>
+  <li>Three scripts every site has: <code>dev</code>, <code>build</code>, <code>clean</code>. Any site may add <code>test</code>; scene sites and sites with <code>indexable: false</code> do</li>
   <li>All CSS processing happens through Eleventy hooks</li>
 </ul>
 
