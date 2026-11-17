@@ -646,15 +646,6 @@ export default function (eleventyConfig) {
   h1, h2, h3, h4 { page-break-after: avoid; }
   p, li, blockquote { orphans: 3; widows: 3; }
 
-  /* Add site attribution */
-  body::after {
-    content: "Printed from {{ site.url }}";
-    display: block;
-    text-align: center;
-    margin-top: 2rem;
-    font-size: 0.8em;
-    color: #666;
-  }
 }
 ```
 
@@ -2591,6 +2582,7 @@ Corrections found while planning a site built to v1.7.1 that had no domain or li
 - The 4.20 deploy workflow runs the tests before the build, and skips them when a site has none
 - Node 22 replaces Node 20, which reached end of life on 30 April 2026 (Section 2, 4.20, Section 9)
 - Section 3 lists optional extra workflows in `.github/workflows/` and an optional `.claude/` folder for agent hooks and settings
+- The 4.3 print styles no longer print "Printed from {{ site.url }}". CSS cannot run a template, so every site printed that text literally
 
 **Added:**
 - A search gate. `site.indexable: false` (4.7) makes the head (4.13) write `<meta name="robots" content="noindex, nofollow">` on every page. Four sites built to the spec already gated search with their own flags (`draft`, `demo`) or a fixed tag. The note says why a robots.txt Disallow is optional, citing Google's documentation
