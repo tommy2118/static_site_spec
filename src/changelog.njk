@@ -8,6 +8,28 @@ prevPage:
   title: Examples
 ---
 
+<h2 id="v1-7-2">Version 1.7.2</h2>
+
+<p><strong>Released:</strong> November 17, 2026<br>
+<strong>Focus:</strong> Corrections found while planning a site with no domain or license yet</p>
+
+<h3>Fixed</h3>
+<ul>
+  <li>The nav partial (4.14) now opens its mobile menu. It put a <code>toggle</code> controller on the button and the menu's <code>toggle</code> target outside the button, so Stimulus never found the target. The partial now uses <code>mobile-nav</code> (4.6), wired as that controller's own usage comment shows</li>
+</ul>
+
+<h3>Changed</h3>
+<ul>
+  <li>The head partial (4.13) writes the canonical link, <code>og:url</code>, and <code>og:image</code> only when <code>site.url</code> is known. A site built before its domain is chosen leaves <code>url</code> out, or marks it <code>blank()</code>, and guesses no address</li>
+  <li>The footer partial (4.15) takes its rights statement from <code>site.rights</code>, with "All rights reserved." when it is left out</li>
+  <li>Section 3 lists two optional folders that sites built to the spec already use: <code>scripts/</code> and <code>docs/</code></li>
+</ul>
+
+<h3>Added</h3>
+<ul>
+  <li>The quality checklist checks that the mobile menu opens and closes at phone width</li>
+</ul>
+
 <h2 id="v1-7-1">Version 1.7.1</h2>
 
 <p><strong>Released:</strong> October 9, 2026<br>

@@ -1,7 +1,7 @@
 # Static Site Specification
 
-**Version:** 1.7.1
-**Last Updated:** 9 October 2026
+**Version:** 1.7.2
+**Last Updated:** 17 November 2026
 **Author:** Tommy A. Caruso Sr.
 
 ---
@@ -125,7 +125,11 @@ project/
 │   ├── about.njk                 # About page
 │   └── contact.njk               # Contact page
 │
-├── test/                         # Scene sites only: node:test specs (Section 11)
+├── test/                         # node:test specs: scene lib/ (Section 11) and scripts/
+│
+├── scripts/                      # Node scripts run by hand or by the build (optional)
+│
+├── docs/                         # Project documents that are not pages (optional)
 │
 ├── dist/                         # Build output (gitignored)
 │
@@ -170,7 +174,9 @@ project/
 | Stimulus setup | `src/assets/js/application.js` |
 | Interactive behaviors | `src/assets/js/controllers/*.js` |
 | Scene logic, renderer, domain math | `src/assets/js/lib/*.js` (Section 11) |
-| Tests for `lib/` modules | `test/*.test.js` (Section 11) |
+| Tests for `lib/` modules and scripts | `test/*.test.js` |
+| Scripts run by hand or by the build (imports, generators) | `scripts/*.js` |
+| Plans and other project documents that are not pages | `docs/*.md` |
 | Standalone pages | `src/*.njk` (index, about, contact) |
 | Section landing pages | `src/[section]/index.njk` |
 | Blog posts / articles | `src/content/posts/*.md` |
@@ -1144,6 +1150,7 @@ export default class extends Controller {
   "phone": "(555) 123-4567",
   "phoneRaw": "5551234567",
   "license": "Optional license number",
+  "rights": "All rights reserved.",
   "author": {
     "name": "Author Name",
     "email": "author@example.com",
@@ -1179,6 +1186,8 @@ export default class extends Controller {
 - `phone`: Formatted phone number for display
 - `phoneRaw`: Unformatted number for `tel:` links
 - `license`: Professional license number (service businesses)
+- `rights`: The rights statement after the footer's copyright line. Leave it out for "All rights reserved." A site that licenses its content says so here, for example "Text CC BY 4.0. Code MIT."
+- `url`: The site's address, with no trailing slash. Until the domain is known, leave it out, or mark it `blank()` in a `site.js` (Section 5). The head then writes no canonical link and no Open Graph URL or image.
 - `author.credentials`: Professional credentials (e.g., "CCN & Professional Horticulturist")
 - `theme.color`: Browser theme color (address bar, PWA)
 - `social`: External profile links (add as needed)
@@ -1355,8 +1364,11 @@ layout: layouts/base.njk
 <title>{{ title }}{% if title %} | {% endif %}{{ site.name }}</title>
 <meta name="description" content="{{ description | default(site.description) }}">
 
-{# Canonical URL #}
-<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+{# Canonical URL and Open Graph links need the site's address: none until it is known #}
+{%- set siteUrl = site.url if (site.url and site.url.kind != "blank") else "" -%}
+{% if siteUrl %}
+<link rel="canonical" href="{{ siteUrl }}{{ page.url }}">
+{% endif %}
 
 {# Dynamic OG Image Selection (customize paths per section) #}
 {%- if image -%}
@@ -1373,8 +1385,10 @@ layout: layouts/base.njk
 <meta property="og:title" content="{{ og_title | default(title) | default(site.name) }}">
 <meta property="og:description" content="{{ og_description | default(description) | default(site.description) }}">
 <meta property="og:type" content="website">
-<meta property="og:url" content="{{ site.url }}{{ page.url }}">
-<meta property="og:image" content="{{ site.url }}{{ ogImage }}">
+{% if siteUrl %}
+<meta property="og:url" content="{{ siteUrl }}{{ page.url }}">
+<meta property="og:image" content="{{ siteUrl }}{{ ogImage }}">
+{% endif %}
 
 {# Twitter Card #}
 <meta name="twitter:card" content="summary_large_image">
@@ -1405,10 +1419,13 @@ layout: layouts/base.njk
 - Font Awesome via CDN provides icons: `<i class="fas fa-check"></i>`
 - Use `| url` filter on asset paths for correct pathPrefix handling
 - `og_title` and `og_description` frontmatter allow explicit Open Graph overrides separate from page title/description
+- The canonical link, `og:url`, and `og:image` need an absolute address. They render only when `site.url` is known, so a site built before its domain is chosen does not guess one (Section 5, Facts Not Yet Known)
 
 ### 4.14 src/_includes/partials/nav.njk
 
 For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to `<main>` in base.njk.
+
+The mobile menu belongs to one controller, `mobile-nav` (4.6). Its button, icons, and menu are all targets inside the `<nav>` that carries it. A target outside its controller's element is never found, so the menu would never open.
 
 ```nunjucks
 {# Fixed header variant: <header class="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b"> #}
@@ -1438,19 +1455,22 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
       <button
         type="button"
         class="md:hidden p-2 -mr-2"
-        data-controller="toggle"
-        data-action="click->toggle#toggle"
+        data-action="click->mobile-nav#toggle"
+        data-mobile-nav-target="button"
         aria-expanded="false"
         aria-label="Toggle menu"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg data-mobile-nav-target="iconOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg data-mobile-nav-target="iconClose" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </div>
 
     {# Mobile Navigation #}
-    <div data-toggle-target="content" class="hidden md:hidden pb-4">
+    <div data-mobile-nav-target="menu" class="hidden md:hidden pb-4">
       <ul class="flex flex-col gap-2">
         {% for item in navigation.main %}
         <li>
@@ -1476,7 +1496,7 @@ For fixed headers, use `fixed w-full z-50` and add `pt-20` or similar padding to
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       {# Copyright #}
       <p class="text-gray-600 text-sm">
-        &copy; {% year %} {{ site.name }}. All rights reserved.
+        &copy; {% year %} {{ site.name }}. {{ site.rights | default("All rights reserved.") }}
       </p>
 
       {# Footer Navigation #}
@@ -2115,7 +2135,7 @@ Before marking a site "done," verify:
 
 - [ ] Directory structure matches Section 3
 - [ ] All required files present (eleventy.config.js, package.json, etc.)
-- [ ] No files outside defined structure
+- [ ] No files outside defined structure (Section 3, including the optional `scripts/` and `docs/`)
 
 ### Templates
 
@@ -2136,6 +2156,7 @@ Before marking a site "done," verify:
 - [ ] Stimulus application initializes
 - [ ] All controllers registered
 - [ ] Interactive elements function correctly
+- [ ] At phone width, the mobile menu opens and closes, and the button's `aria-expanded` follows it
 - [ ] No JavaScript errors in console
 
 ### Content
@@ -2524,6 +2545,23 @@ Section 11 was drawn from three scene sites built in this stack before the spec 
 ---
 
 ## APPENDIX D: Changelog
+
+### v1.7.2 (17 November 2026)
+
+Corrections found while planning a site built to v1.7.1 that had no domain or license yet:
+
+**Fixed:**
+- The 4.14 nav partial now opens its mobile menu. It put a `toggle` controller on the button and the menu's `toggle` target outside the button, so Stimulus never found the target and the menu never opened. The partial now uses `mobile-nav` (4.6), wired as that controller's own usage comment shows
+
+**Changed:**
+- The 4.13 head writes the canonical link, `og:url`, and `og:image` only when `site.url` is known. A site built before its domain is chosen leaves `url` out, or marks it `blank()` (Section 5), and guesses no address
+- The 4.15 footer takes its rights statement from `site.rights`, with "All rights reserved." when it is left out. A site that licenses its content says so, instead of contradicting its license
+- Section 3 lists two optional folders that sites built to the spec already use: `scripts/` for Node scripts run by hand or by the build, and `docs/` for project documents that are not pages
+
+**Added:**
+- Section 10 checks that the mobile menu opens and closes at phone width
+
+---
 
 ### v1.7.1 (9 October 2026)
 
